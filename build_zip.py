@@ -1,0 +1,64 @@
+# -*- coding: utf-8 -*-
+"""
+Membuat ZIP plugin ATR BPN Basemap yang siap diunggah ke plugins.qgis.org.
+
+Cara menjalankan (pilih salah satu):
+  a) QGIS > Plugins > Python Console, lalu ketik:
+       exec(open(r"X:\GIS\Project Plugin\build_zip.py", encoding="utf-8").read())
+  b) OSGeo4W Shell / terminal:
+       python "X:\GIS\Project Plugin\build_zip.py"
+
+Hasil: X:\GIS\Project Plugin\dist\atrbpn_basemap-<versi>.zip
+"""
+import configparser
+import os
+import re
+import zipfile
+
+ROOT = r"X:\GIS\Project Plugin"
+if "__file__" in globals():
+    ROOT = os.path.dirname(os.path.abspath(__file__))
+PLUGIN = "atrbpn_basemap"
+SRC = os.path.join(ROOT, PLUGIN)
+SKIP_DIRS = {"__pycache__", ".git", ".idea", ".vscode"}
+SKIP_EXT = (".pyc", ".pyo", ".bak", ".orig", ".tmp")
+
+cp = configparser.ConfigParser()
+cp.read(os.path.join(SRC, "metadata.txt"), encoding="utf-8")
+meta = cp["general"]
+
+# --- validasi ---
+errors = []
+for key in ("name", "qgisMinimumVersion", "description", "about", "version",
+            "author", "email", "repository", "tracker", "homepage"):
+    if not meta.get(key, "").strip():
+        errors.append("Kolom '%s' di metadata.txt masih kosong." % key)
+for key in ("email", "repository", "tracker", "homepage"):
+    if "GANTI_" in meta.get(key, ""):
+        errors.append("Kolom '%s' masih berisi placeholder GANTI_...: %s" % (key, meta.get(key)))
+if not re.match(r"[^@\s]+@[^@\s]+\.[^@\s]+$", meta.get("email", "")):
+    errors.append("Email tidak valid: %s" % meta.get("email"))
+for f in ("__init__.py", "metadata.txt", "LICENSE", meta.get("icon", "icon.png")):
+    if not os.path.isfile(os.path.join(SRC, f)):
+        errors.append("Berkas wajib tidak ditemukan: %s" % f)
+
+if errors:
+    print("ZIP BELUM DIBUAT. Perbaiki dulu:")
+    for e in errors:
+        print("  - " + e)
+else:
+    out_dir = os.path.join(ROOT, "dist")
+    os.makedirs(out_dir, exist_ok=True)
+    out = os.path.join(out_dir, "%s-%s.zip" % (PLUGIN, meta["version"].strip()))
+    n = 0
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for base, dirs, files in os.walk(SRC):
+            dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")]
+            for fn in sorted(files):
+                if fn.endswith(SKIP_EXT) or fn.startswith("."):
+                    continue
+                full = os.path.join(base, fn)
+                arc = os.path.relpath(full, ROOT).replace("\\", "/")  # wajib garis miring /
+                z.write(full, arc)
+                n += 1
+    print("ZIP berhasil dibuat (%d berkas): %s" % (n, out))
