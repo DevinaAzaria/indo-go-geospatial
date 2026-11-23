@@ -2,10 +2,10 @@
 name=ATR BPN Basemap
 qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
-description=Menambahkan foto udara Peta Dasar ATR/BPN sebagai basemap XYZ dan memperbarui URL tile-nya secara otomatis.
-about=Plugin membaca skrip peta pada situs Peta Dasar ATR/BPN (petadasar.atrbpn.go.id) untuk menemukan URL tile foto udara terbaru, menguji tile contoh, lalu memperbarui layer di proyek dan koneksi XYZ di panel Browser. Pengecekan otomatis berjalan di latar belakang paling sering sekali sehari. Plugin juga dapat mengekspor foto udara pada extent tertentu menjadi GeoTIFF.
-    Batasan: cakupan data hanya wilayah Indonesia yang tersedia di Peta Dasar ATR/BPN, dan membutuhkan koneksi internet. Ketersediaan data sepenuhnya bergantung pada layanan ATR/BPN.
-    Plugin ini dikembangkan secara independen dan tidak berafiliasi dengan Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional. Hak atas data foto udara tetap milik ATR/BPN; patuhi ketentuan penggunaan data dari penyedia.
+description=Adds ATR/BPN (Indonesia) Peta Dasar aerial imagery as an XYZ basemap and keeps its tile URL up to date automatically.
+about=The plugin reads the map scripts of the ATR/BPN Peta Dasar website (petadasar.atrbpn.go.id) to find the latest aerial imagery tile URL, tests a sample tile, then updates layers in the current project and the XYZ connection in the Browser panel. An automatic background check runs at most once a day. Imagery for a selected extent can also be exported to GeoTIFF.
+    Limitations: coverage is limited to areas of Indonesia available in ATR/BPN Peta Dasar, and an internet connection is required. Data availability depends entirely on the ATR/BPN service.
+    This plugin is developed independently and is not affiliated with the Ministry of Agrarian Affairs and Spatial Planning/National Land Agency (ATR/BPN). The imagery remains the property of ATR/BPN; please follow the provider's terms of use.
 version=1.0.0
 author=Fadli Arya Wisnu Baradi
 email=fadli.aryawisnu@gmail.com
@@ -13,7 +13,7 @@ homepage=https://github.com/fadliarya/atrbpn-basemap
 tracker=https://github.com/fadliarya/atrbpn-basemap/issues
 repository=https://github.com/fadliarya/atrbpn-basemap
 changelog=1.0.0
-    - Rilis pertama: basemap XYZ foto udara ATR/BPN, deteksi URL otomatis, koneksi XYZ di Browser, ekspor GeoTIFF.
+    - First release: ATR/BPN aerial imagery XYZ basemap, automatic tile URL detection, XYZ connection in the Browser panel, GeoTIFF export.
 tags=basemap,xyz,indonesia,aerial imagery,orthophoto,atr bpn
 experimental=True
 deprecated=False

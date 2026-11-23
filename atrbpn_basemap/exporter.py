@@ -14,8 +14,6 @@ import os
 import shutil
 import tempfile
 import time
-import urllib.error
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from osgeo import gdal, osr
@@ -106,25 +104,21 @@ def prepare_cutline(layer, selected_only):
 
 
 # ---------- unduh tile ----------
-def fetch_tile(url, retries=2, timeout=30):
-    """Bytes gambar tile, atau None bila kosong/gagal."""
-    req = urllib.request.Request(url, headers={
-        "Referer": detector.REFERER,
-        "User-Agent": detector.USER_AGENT.decode(),
-    })
+def fetch_tile(url, retries=2):
+    """Bytes gambar tile, atau None bila kosong/gagal.
+
+    Memakai detector.http() (QgsBlockingNetworkRequest) agar pengaturan
+    proxy dan autentikasi jaringan QGIS ikut berlaku.
+    """
     for i in range(retries + 1):
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                ctype = (r.headers.get("Content-Type") or "").lower()
-                data = r.read()
-                if r.status == 200 and "image" in ctype and data:
-                    return data
-                return None
-        except urllib.error.HTTPError as e:
-            if e.code in (204, 404):
-                return None
+            status, ctype, data = detector.http(url)
         except Exception:
-            pass
+            status, ctype, data = None, "", b""
+        if status == 200:
+            return data if ("image" in ctype and data) else None
+        if status in (204, 404):
+            return None
         time.sleep(1 + i)
     return None
 

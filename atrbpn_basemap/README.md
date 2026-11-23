@@ -1,5 +1,9 @@
 # ATR BPN Basemap (Plugin QGIS)
 
+**English:** QGIS plugin that adds ATR/BPN (Indonesia) Peta Dasar aerial imagery as an XYZ basemap. The tile URL is detected and updated automatically from the ATR/BPN website. Imagery for a selected extent can be exported to GeoTIFF. Coverage is limited to Indonesia. Not affiliated with ATR/BPN. All commands are in **Plugins > ATR BPN Basemap**.
+
+---
+
 Plugin QGIS untuk menambahkan foto udara Peta Dasar ATR/BPN (petadasar.atrbpn.go.id) sebagai basemap XYZ. URL tile diperbarui secara otomatis dari situs ATR/BPN, sehingga pengguna tidak perlu mencari dan menyalin URL secara manual setiap kali alamatnya berubah.
 
 ## Fitur
