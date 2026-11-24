@@ -17,6 +17,7 @@ Plugin QGIS untuk menambahkan foto udara Peta Dasar ATR/BPN ([petadasar.atrbpn.g
 - Mendeteksi URL tile terbaru dari skrip peta di situs ATR/BPN, lalu menguji tile contoh sebelum dipakai.
 - Memperbarui layer di proyek yang sedang terbuka dan koneksi XYZ di panel Browser.
 - Pengecekan otomatis di latar belakang, paling sering sekali sehari (dapat dimatikan).
+- Bila situs ATR/BPN berubah, plugin memakai URL cadangan dari konfigurasi di GitHub dan memberi tahu bila ada versi baru.
 - Ekspor foto udara ke GeoTIFF dengan pilihan:
   - extent (canvas, layer, draw on canvas, atau koordinat manual),
   - pemotongan mengikuti poligon (opsional, bisa hanya fitur terpilih),
@@ -92,6 +93,7 @@ A QGIS plugin that adds aerial imagery from the ATR/BPN Peta Dasar service ([pet
 - Detects the latest tile URL from the map script on the ATR/BPN website and tests a sample tile before using it.
 - Updates layers in the open project and the XYZ connection in the Browser panel.
 - Automatic background check, at most once a day (can be turned off).
+- If the ATR/BPN website changes, the plugin falls back to a URL from the configuration on GitHub and notifies you when a new version is available.
 - Export imagery to GeoTIFF with options for:
   - extent (canvas, layer, draw on canvas, or manual coordinates),
   - clipping to a polygon layer (optional, selected features only if needed),

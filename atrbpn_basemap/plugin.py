@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+import configparser
 import os
 import time
 
 from qgis.core import (Qgis, QgsApplication, QgsProject, QgsRasterLayer,
                        QgsSettings, QgsTask, QgsCoordinateReferenceSystem,
                        QgsCoordinateTransform, QgsMessageLog)
-from qgis.PyQt.QtCore import QTimer
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QInputDialog, QMessageBox
+from qgis.PyQt.QtCore import QTimer, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
+from qgis.PyQt.QtWidgets import QAction, QInputDialog, QMessageBox, QPushButton
 
 from . import detector, exporter
 from .export_dialog import ExportDialog
@@ -22,6 +23,15 @@ CHECK_INTERVAL = 24 * 3600  # cek otomatis paling sering sekali sehari
 
 def log(msg, level=Qgis.Info):
     QgsMessageLog.logMessage(msg, PLUGIN_NAME, level)
+
+
+def plugin_version():
+    cp = configparser.ConfigParser()
+    try:
+        cp.read(os.path.join(os.path.dirname(__file__), "metadata.txt"), encoding="utf-8")
+        return cp["general"]["version"].strip()
+    except Exception:
+        return "0"
 
 
 class AtrBpnBasemapPlugin:
@@ -85,6 +95,29 @@ class AtrBpnBasemapPlugin:
     def bar(self, msg, level=Qgis.Info, dur=6):
         self.iface.messageBar().pushMessage(PLUGIN_NAME, msg, level, dur)
 
+    def bar_link(self, msg, url, label, level=Qgis.Warning, dur=0):
+        """Pesan di message bar dengan tombol yang membuka url di browser."""
+        bar = self.iface.messageBar()
+        w = bar.createMessage(PLUGIN_NAME, msg)
+        b = QPushButton(label, w)
+        b.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(url)))
+        w.layout().addWidget(b)
+        bar.pushWidget(w, level, dur)
+
+    def notify_remote(self, remote):
+        """Tampilkan info versi baru dan pengumuman dari config.json (sekali per nilai)."""
+        s = QgsSettings()
+        latest = str(remote.get("latest_version") or "")
+        if latest and detector.version_tuple(latest) > detector.version_tuple(plugin_version()) \
+                and s.value(SKEY + "notified_version", "") != latest:
+            s.setValue(SKEY + "notified_version", latest)
+            self.bar_link("Versi baru %s tersedia (terpasang: %s)." % (latest, plugin_version()),
+                          detector.RELEASES_URL, "Unduh di GitHub", Qgis.Info)
+        msg = str(remote.get("message") or "").strip()
+        if msg and s.value(SKEY + "notified_message", "") != msg:
+            s.setValue(SKEY + "notified_message", msg)
+            self.bar_link(msg, detector.REPO_URL, "Buka GitHub", Qgis.Info)
+
     # ---------- aksi ----------
     def add_layer(self):
         c = self.cfg()
@@ -121,7 +154,9 @@ class AtrBpnBasemapPlugin:
             "Badan Pertanahan Nasional (ATR/BPN) Republik Indonesia, melalui layanan "
             "https://petadasar.atrbpn.go.id. Hak atas data sepenuhnya milik Kementerian ATR/BPN.\n\n"
             "Plugin ini dikembangkan secara independen oleh Fadli Arya Wisnu Baradi dan tidak "
-            "berafiliasi dengan Kementerian ATR/BPN." % (c["url"], c["zmin"], c["zmax"], last))
+            "berafiliasi dengan Kementerian ATR/BPN.\n\n"
+            "Versi: %s\nRilis terbaru dan laporan masalah: %s"
+            % (c["url"], c["zmin"], c["zmax"], last, plugin_version(), detector.REPO_URL))
 
     # ---------- ekspor ----------
     def open_export(self):
@@ -204,23 +239,32 @@ class AtrBpnBasemapPlugin:
             self.task = None
             if exc is not None or result is None:
                 log("Gagal deteksi: %s" % exc, Qgis.Warning)
-                if manual:
-                    self.bar("Gagal membaca situs ATR/BPN: %s" % exc, Qgis.Warning, 10)
+                # ditampilkan juga pada cek otomatis, supaya pengguna tahu kenapa layer kosong
+                self.bar_link("URL foto udara ATR/BPN tidak dapat ditemukan (%s). Kemungkinan situs "
+                              "ATR/BPN berubah. Cek versi plugin terbaru atau laporkan masalahnya." % exc,
+                              detector.RELEASES_URL, "Buka GitHub", Qgis.Warning)
                 return
             QgsSettings().setValue(SKEY + "last_check", time.time())
+            self.notify_remote(result.get("remote") or {})
             c = self.cfg()
-            log("Terdeteksi: %s (zoom %s-%s, terverifikasi=%s)" %
-                (result["url"], result["zmin"], result["zmax"], result["verified"]))
+            log("Terdeteksi: %s (zoom %s-%s, terverifikasi=%s, sumber=%s)" %
+                (result["url"], result["zmin"], result["zmax"], result["verified"], result.get("source")))
+            src = " dari konfigurasi GitHub" if result.get("source") == "config" else ""
             if result["url"] != c["url"] or result["zmin"] != c["zmin"] or result["zmax"] != c["zmax"]:
                 if not result["verified"]:
-                    self.bar("URL baru terdeteksi tapi tile uji belum merespons; URL lama dipertahankan. "
-                             "Kandidat: %s" % result["url"], Qgis.Warning, 15)
+                    self.bar_link("URL baru terdeteksi tapi tile uji belum merespons; URL lama dipertahankan. "
+                                  "Kandidat: %s" % result["url"], detector.RELEASES_URL, "Buka GitHub",
+                                  Qgis.Warning, 15)
                     return
-                self.apply_new(result["url"], result["zmin"], result["zmax"], note="URL diperbarui otomatis")
+                self.apply_new(result["url"], result["zmin"], result["zmax"],
+                               note="URL diperbarui otomatis" + src)
             elif manual:
-                msg = "URL masih sama dan aktif." if result["verified"] else \
-                      "URL masih sama, tapi tile uji tidak merespons (server mungkin sedang gangguan)."
-                self.bar(msg, Qgis.Success if result["verified"] else Qgis.Warning)
+                if result["verified"]:
+                    self.bar("URL masih sama dan aktif%s." % src, Qgis.Success)
+                else:
+                    self.bar_link("URL masih sama, tapi tile uji tidak merespons (server ATR/BPN mungkin "
+                                  "sedang gangguan, atau situsnya berubah).", detector.RELEASES_URL,
+                                  "Buka GitHub", Qgis.Warning, 15)
 
         self.task = QgsTask.fromFunction("Cek URL ATR/BPN", run, on_finished=done)
         QgsApplication.taskManager().addTask(self.task)
