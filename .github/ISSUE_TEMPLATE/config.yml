@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Log update plugin di Threads / Update log on Threads
+    url: https://www.threads.net/@fadli_arya
+    about: Pengumuman versi baru dan perubahan situs ATR/BPN. / Release announcements and ATR/BPN website changes.
+  - name: Rilis terbaru / Latest release
+    url: https://github.com/fadliarya/atrbpn-basemap/releases
+    about: Unduh ZIP plugin versi terbaru. / Download the latest plugin ZIP.

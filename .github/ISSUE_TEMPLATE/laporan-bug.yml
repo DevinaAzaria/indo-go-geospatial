@@ -1,0 +1,81 @@
+name: Laporan masalah / Bug report
+description: Foto udara kosong, ekspor gagal, error, atau perilaku plugin yang tidak semestinya. / Empty imagery, failed export, errors, or unexpected behaviour.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih sudah melapor. Data di bawah ini membantu masalah cepat ditemukan dan diperbaiki.
+        Thank you for reporting. The details below help us find and fix the problem quickly.
+
+  - type: dropdown
+    id: jenis
+    attributes:
+      label: Jenis masalah / Problem type
+      options:
+        - Foto udara kosong atau tidak tampil / Imagery empty or not shown
+        - Pesan "URL foto udara tidak dapat ditemukan" / "URL not found" message
+        - Ekspor GeoTIFF gagal atau hasilnya salah / GeoTIFF export failed or wrong
+        - Plugin error atau tidak bisa dibuka / Plugin error or won't load
+        - Lainnya / Other
+    validations:
+      required: true
+
+  - type: input
+    id: versi_plugin
+    attributes:
+      label: Versi plugin / Plugin version
+      description: Lihat di Plugins > ATR BPN Basemap > Tentang plugin. / See Plugins > ATR BPN Basemap > Tentang plugin.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: versi_qgis
+    attributes:
+      label: Versi QGIS dan sistem operasi / QGIS version and OS
+      placeholder: "QGIS 3.44.15, Windows 11"
+    validations:
+      required: true
+
+  - type: input
+    id: lokasi
+    attributes:
+      label: Lokasi / Location
+      description: Nama daerah atau koordinat (lon, lat) tempat masalah terjadi. / Place name or coordinates (lon, lat).
+      placeholder: "Driyorejo, Gresik atau 112.6264, -7.3632"
+
+  - type: textarea
+    id: langkah
+    attributes:
+      label: Langkah yang dilakukan / Steps to reproduce
+      description: Apa yang Anda klik atau lakukan sebelum masalah muncul? / What did you do before the problem appeared?
+      placeholder: |
+        1. Plugins > ATR BPN Basemap > Tambahkan Foto Udara ATR/BPN
+        2. Zoom ke ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: hasil
+    attributes:
+      label: Yang terjadi dan yang diharapkan / What happened and what you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Pesan log / Log messages
+      description: |
+        Buka View > Panels > Log Messages, pilih tab "ATR BPN Basemap" (dan tab "WMS" bila ada), lalu salin isinya.
+        Open View > Panels > Log Messages, select the "ATR BPN Basemap" tab (and "WMS" if present), and paste its content.
+      render: text
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Seret gambar ke kotak ini. / Drag images into this box.

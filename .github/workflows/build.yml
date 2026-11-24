@@ -1,0 +1,38 @@
+name: Cek dan build plugin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cek sintaks Python
+        run: python -m py_compile atrbpn_basemap/*.py tests/*.py
+
+      - name: Cek metadata.txt dan config.json
+        run: python tests/ci_check.py
+
+      - name: Build ZIP plugin
+        run: |
+          python build_zip.py
+          ls dist/*.zip
+
+      - name: Cek isi ZIP
+        run: python tests/ci_check.py dist/*.zip
+
+      - name: Simpan ZIP sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atrbpn_basemap-zip
+          path: dist/*.zip
+          retention-days: 14

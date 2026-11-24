@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Membuat ZIP plugin ATR BPN Basemap yang siap diunggah ke plugins.qgis.org.
+r"""
+Membuat ZIP plugin ATR BPN Basemap untuk rilis GitHub (dan plugins.qgis.org).
 
 Cara menjalankan (pilih salah satu):
-  a) QGIS > Plugins > Python Console, lalu ketik:
-       exec(open(r"X:\GIS\Project Plugin\build_zip.py", encoding="utf-8").read())
+  a) QGIS > Plugins > Python Console, lalu ketik (sesuaikan folder versinya):
+       p = r"X:\GIS\Project Plugin\versi_1.1.0\build_zip.py"
+       exec(open(p, encoding="utf-8").read(), {"__file__": p})
   b) OSGeo4W Shell / terminal:
-       python "X:\GIS\Project Plugin\build_zip.py"
+       python "X:\GIS\Project Plugin\versi_1.1.0\build_zip.py"
 
-Hasil: X:\GIS\Project Plugin\dist\atrbpn_basemap-<versi>.zip
+Hasil: <folder versi>\dist\atrbpn_basemap-<versi>.zip
 """
 import configparser
 import os

@@ -1,0 +1,23 @@
+name: Usulan fitur / Feature request
+description: Ide atau fitur baru untuk plugin. / An idea or new feature for the plugin.
+title: "[Usulan] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: kebutuhan
+    attributes:
+      label: Kebutuhan / Need
+      description: Masalah atau pekerjaan apa yang ingin dipermudah? / What problem or task should this make easier?
+    validations:
+      required: true
+  - type: textarea
+    id: usulan
+    attributes:
+      label: Usulan / Proposal
+      description: Bagaimana fitur ini sebaiknya bekerja? / How should the feature work?
+    validations:
+      required: true
+  - type: textarea
+    id: lainnya
+    attributes:
+      label: Informasi tambahan / Additional context
