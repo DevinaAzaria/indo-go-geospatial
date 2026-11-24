@@ -115,7 +115,13 @@ class AtrBpnBasemapPlugin:
             "Menambahkan foto udara Peta Dasar ATR/BPN sebagai XYZ tile, lengkap dengan header Referer.\n\n"
             "Plugin membaca skrip peta di petadasar.atrbpn.go.id untuk menemukan URL tile terbaru, "
             "mengujinya, lalu memperbarui layer di proyek dan koneksi XYZ di Browser.\n\n"
-            "URL saat ini:\n%s\nZoom: %d-%d\nPengecekan terakhir: %s" % (c["url"], c["zmin"], c["zmax"], last))
+            "URL saat ini:\n%s\nZoom: %d-%d\nPengecekan terakhir: %s\n\n"
+            "Kredit data:\n"
+            "Foto udara dan Peta Dasar bersumber dari Kementerian Agraria dan Tata Ruang/"
+            "Badan Pertanahan Nasional (ATR/BPN) Republik Indonesia, melalui layanan "
+            "https://petadasar.atrbpn.go.id. Hak atas data sepenuhnya milik Kementerian ATR/BPN.\n\n"
+            "Plugin ini dikembangkan secara independen oleh Fadli Arya Wisnu Baradi dan tidak "
+            "berafiliasi dengan Kementerian ATR/BPN." % (c["url"], c["zmin"], c["zmax"], last))
 
     # ---------- ekspor ----------
     def open_export(self):
