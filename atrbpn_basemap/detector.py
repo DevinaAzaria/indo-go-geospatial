@@ -19,8 +19,8 @@ from qgis.PyQt.QtNetwork import QNetworkRequest
 BASE = "https://petadasar.atrbpn.go.id/"
 REFERER = BASE
 USER_AGENT = b"Mozilla/5.0 (QGIS; ATR BPN Basemap plugin)"
-DEFAULT_URL = "https://petadasar.atrbpn.go.id/?wms/1/{x}/{y}/{z}/2"
-DEFAULT_SCRIPTS = ["?js/2/map5/"]
+DEFAULT_URL = "https://petadasar.atrbpn.go.id/?wms/{x}/{y}/{z}/2"
+DEFAULT_SCRIPTS = ["?js/map5/", "?js/2/map5/"]
 FOTO_KEYWORDS = ("foto airbone", "foto airborne", "csrt-foto", "drone")
 
 # Titik uji yang diketahui punya cakupan foto udara (lon, lat)
@@ -132,14 +132,22 @@ def detect(extra_points=(), log=None):
     status, _, body = http(BASE)
     if status != 200:
         raise RuntimeError("Halaman utama ATR/BPN tidak bisa diakses (HTTP %s)" % status)
-    html = _text(body)
-    variables = _find_vars(html)
-
-    scripts = set(re.findall(r"""['"](\.?/?\?js/[\w/]+?/?)['"]""", html))
+    pages = [_text(body)]
+    # sejak Nov 2026 peta dimuat di iframe lewat POST m=90; skrip peta dirujuk dari sana
+    try:
+        st2, _, body2 = http(BASE, post=("m=90&app=&t=%d" % int(time.time())).encode())
+        if st2 == 200 and body2:
+            pages.append(_text(body2))
+    except Exception:
+        pass
+    variables, scripts = {}, set()
+    for page in pages:
+        for k, val in _find_vars(page).items():
+            variables.setdefault(k, val)
+        scripts.update(re.findall(r"""['"](\.?/?\?js/[\w/]+?/?)['"]""", page))
     scripts.update(DEFAULT_SCRIPTS)
     layers = []
-    for s in scripts:
-        url = urljoin(BASE, s)
+    for url in sorted({urljoin(BASE, s) for s in scripts}):
         if url.endswith("/"):
             url += str(int(time.time()))
         log("Membaca skrip peta: %s" % url)

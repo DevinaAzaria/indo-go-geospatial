@@ -251,22 +251,29 @@ class AtrBpnBasemapPlugin:
         return n
 
     def update_connection(self, url, zmin, zmax):
-        """Simpan/ubah koneksi XYZ di panel Browser."""
+        """Simpan/ubah koneksi XYZ di panel Browser.
+
+        QgsXyzConnection/QgsXyzConnectionUtils tidak tersedia di API Python,
+        jadi koneksi ditulis langsung ke QgsSettings dengan kunci yang dipakai QGIS.
+        """
         try:
-            from qgis.core import QgsXyzConnection, QgsXyzConnectionUtils
-            c = QgsXyzConnection()
-            c.name = CONN_NAME
-            c.url = url
-            c.zMin = zmin
-            c.zMax = zmax
-            try:
-                from qgis.core import QgsHttpHeaders
-                h = QgsHttpHeaders()
-                h.setValue("referer", detector.REFERER)
-                c.httpHeaders = h
-            except Exception:
-                c.referer = detector.REFERER
-            QgsXyzConnectionUtils.addConnection(c)
+            s = QgsSettings()
+            if Qgis.QGIS_VERSION_INT >= 33000:
+                base = "connections/xyz/items/%s/" % CONN_NAME
+                s.setValue(base + "http-header", {"referer": detector.REFERER})
+                defaults = (("authcfg", ""), ("username", ""), ("password", ""),
+                            ("interpretation", ""), ("tile-pixel-ratio", 0))
+            else:
+                base = "qgis/connections-xyz/%s/" % CONN_NAME
+                s.setValue(base + "referer", detector.REFERER)
+                defaults = (("authcfg", ""), ("username", ""), ("password", ""),
+                            ("tilePixelRatio", 0))
+            s.setValue(base + "url", url)
+            s.setValue(base + "zmin", int(zmin))
+            s.setValue(base + "zmax", int(zmax))
+            for k, v in defaults:
+                if s.value(base + k) is None:
+                    s.setValue(base + k, v)
             try:
                 self.iface.browserModel().reload()
             except Exception:
