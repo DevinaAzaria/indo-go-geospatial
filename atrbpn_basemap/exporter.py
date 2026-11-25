@@ -228,6 +228,11 @@ class ExportTask(QgsTask):
                                 gdal.GCI_BlueBand, gdal.GCI_AlphaBand), start=1):
             ds.GetRasterBand(i).SetColorInterpretation(ci)
 
+        if detector.needs_token(self.template) and not detector.test_url(self.url):
+            fresh = detector.refresh(self.template, log=log)
+            if fresh:
+                self.url = fresh
+            self._checked = time.time()
         jobs = [(x, y) for y in range(self.y0, self.y1 + 1) for x in range(self.x0, self.x1 + 1)]
         total = len(jobs)
         with ThreadPoolExecutor(max_workers=self.p["workers"]) as ex:

@@ -142,16 +142,6 @@ class AtrBpnBasemapPlugin:
     # ---------- aksi ----------
     def add_layer(self):
         c = self.cfg()
-        if detector.needs_token(c["template"]):
-            # token sesi cepat kedaluwarsa: ambil yang baru sebelum layer ditambahkan
-            url = detector.refresh(c["template"], self._canvas_point(), log=log)
-            if url:
-                if url != c["url"]:
-                    self.save_cfg(url, c["zmin"], c["zmax"])
-                c["url"] = url
-            else:
-                self.bar("Token sesi ATR/BPN belum bisa diperbarui; layer mungkin kosong. "
-                         "Coba menu 'Cek & perbarui URL'.", Qgis.Warning, 10)
         uri = detector.build_uri(c["url"], c["zmin"], c["zmax"])
         lyr = QgsRasterLayer(uri, LAYER_NAME, "wms")
         if not lyr.isValid():
@@ -161,6 +151,8 @@ class AtrBpnBasemapPlugin:
         QgsProject.instance().addMapLayer(lyr)
         self.update_connection(c["url"], c["zmin"], c["zmax"])
         self.bar("Foto udara ATR/BPN ditambahkan (zoom %d-%d)." % (c["zmin"], c["zmax"]), Qgis.Success)
+        # token sesi cepat kedaluwarsa: periksa segera di latar belakang (tanpa membekukan QGIS)
+        QTimer.singleShot(0, self.token_tick)
 
     def toggle_auto(self, checked):
         QgsSettings().setValue(SKEY + "auto_check", bool(checked))
@@ -212,11 +204,8 @@ class AtrBpnBasemapPlugin:
     def start_export(self):
         p = self.export_dlg.params()
         c = self.cfg()
+        # token kedaluwarsa diperbarui oleh ExportTask sendiri (di thread latar belakang)
         p["url"], p["template"] = c["url"], c["template"]
-        if detector.needs_token(c["template"]):
-            fresh = detector.refresh(c["template"], log=log)
-            if fresh:
-                p["url"] = fresh
         if p["cut_layer"] is not None:
             try:
                 path, folder, ext, crs = exporter.prepare_cutline(p["cut_layer"], p["cut_selected"])
