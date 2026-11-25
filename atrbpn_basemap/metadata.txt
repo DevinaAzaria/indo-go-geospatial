@@ -6,13 +6,17 @@ description=Menambahkan foto udara Peta Dasar ATR/BPN sebagai basemap XYZ dan me
 about=Plugin membaca skrip peta pada situs Peta Dasar ATR/BPN (petadasar.atrbpn.go.id) untuk menemukan URL tile foto udara terbaru, menguji tile contoh, lalu memperbarui layer di proyek dan koneksi XYZ di panel Browser. Pengecekan otomatis berjalan di latar belakang paling sering sekali sehari. Plugin juga dapat mengekspor foto udara pada extent tertentu menjadi GeoTIFF.
     Batasan: cakupan data hanya wilayah Indonesia yang tersedia di Peta Dasar ATR/BPN, dan membutuhkan koneksi internet. Ketersediaan data sepenuhnya bergantung pada layanan ATR/BPN.
     Plugin ini dikembangkan secara independen dan tidak berafiliasi dengan Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional. Hak atas data foto udara tetap milik ATR/BPN; patuhi ketentuan penggunaan data dari penyedia.
-version=1.1.0
+version=1.1.1
 author=Fadli Arya Wisnu Baradi
 email=fadli.aryawisnu@gmail.com
 homepage=https://github.com/fadliarya/atrbpn-basemap
 tracker=https://github.com/fadliarya/atrbpn-basemap/issues
 repository=https://github.com/fadliarya/atrbpn-basemap
-changelog=1.1.0
+changelog=1.1.1
+    - Perbaikan: sejak 25 November 2026 URL tile foto udara ATR/BPN memuat token sesi yang berganti setiap beberapa menit, sehingga layer bisa mendadak kosong. Plugin kini menyimpan template URL dan memperbarui token secara otomatis di latar belakang (layer proyek, koneksi XYZ, dan saat ekspor GeoTIFF).
+    - Perbaikan: deteksi URL dicoba ulang hingga 3 kali dengan token baru bila tile uji belum merespons.
+    - config.json kini mendukung placeholder {token} pada tile_url.
+    1.1.0
     - Baru: konfigurasi jarak jauh (config.json di GitHub). Bila situs ATR/BPN berubah, URL tile cadangan dapat diperbarui tanpa memasang versi baru.
     - Baru: pesan dengan tombol ke GitHub saat URL foto udara tidak ditemukan.
     - Baru: pemberitahuan bila tersedia versi plugin yang lebih baru.

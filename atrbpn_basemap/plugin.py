@@ -19,6 +19,9 @@ CONN_NAME = "ATR BPN Foto Udara"
 SKEY = "atrbpn_basemap/"
 PROP = "atrbpn_basemap"
 CHECK_INTERVAL = 24 * 3600  # cek otomatis paling sering sekali sehari
+# Token sesi di URL tile ATR/BPN berganti setiap beberapa menit; tile URL di layer
+# diperiksa sesering ini dan tokennya diperbarui bila tile uji kosong.
+TOKEN_CHECK_MS = 60 * 1000
 
 
 def log(msg, level=Qgis.Info):
@@ -46,17 +49,21 @@ class AtrBpnBasemapPlugin:
     # ---------- pengaturan tersimpan ----------
     def cfg(self):
         s = QgsSettings()
+        url = s.value(SKEY + "url", detector.DEFAULT_URL)
         return {
-            "url": s.value(SKEY + "url", detector.DEFAULT_URL),
+            "url": url,
+            "template": s.value(SKEY + "template", "") or url,
             "zmin": int(s.value(SKEY + "zmin", 16)),
             "zmax": int(s.value(SKEY + "zmax", 21)),
             "auto": s.value(SKEY + "auto_check", True, type=bool),
             "last": float(s.value(SKEY + "last_check", 0)),
         }
 
-    def save_cfg(self, url, zmin, zmax):
+    def save_cfg(self, url, zmin, zmax, template=None):
         s = QgsSettings()
         s.setValue(SKEY + "url", url)
+        if template:
+            s.setValue(SKEY + "template", template)
         s.setValue(SKEY + "zmin", zmin)
         s.setValue(SKEY + "zmax", zmax)
 
@@ -72,6 +79,13 @@ class AtrBpnBasemapPlugin:
         self.auto_action.setChecked(self.cfg()["auto"])
         self._add(QIcon(), "Tentang plugin", self.about)
         QTimer.singleShot(5000, self.auto_check)
+        self.token_task = None
+        self.token_timer = QTimer()
+        self.token_timer.timeout.connect(self.token_tick)
+        self.token_timer.start(TOKEN_CHECK_MS)
+        QTimer.singleShot(8000, self.token_tick)
+        # proyek yang dibuka bisa berisi layer dengan token lama
+        QgsProject.instance().readProject.connect(self._on_project_read)
 
     def _add(self, icon, text, cb, toolbar=False):
         a = QAction(icon, text, self.iface.mainWindow())
@@ -84,6 +98,13 @@ class AtrBpnBasemapPlugin:
 
     def unload(self):
         self._unloaded = True
+        if getattr(self, "token_timer", None) is not None:
+            self.token_timer.stop()
+            self.token_timer = None
+        try:
+            QgsProject.instance().readProject.disconnect(self._on_project_read)
+        except Exception:
+            pass
         if self.export_dlg is not None:
             self.export_dlg.close()
             self.export_dlg = None
@@ -121,6 +142,16 @@ class AtrBpnBasemapPlugin:
     # ---------- aksi ----------
     def add_layer(self):
         c = self.cfg()
+        if detector.needs_token(c["template"]):
+            # token sesi cepat kedaluwarsa: ambil yang baru sebelum layer ditambahkan
+            url = detector.refresh(c["template"], self._canvas_point(), log=log)
+            if url:
+                if url != c["url"]:
+                    self.save_cfg(url, c["zmin"], c["zmax"])
+                c["url"] = url
+            else:
+                self.bar("Token sesi ATR/BPN belum bisa diperbarui; layer mungkin kosong. "
+                         "Coba menu 'Cek & perbarui URL'.", Qgis.Warning, 10)
         uri = detector.build_uri(c["url"], c["zmin"], c["zmax"])
         lyr = QgsRasterLayer(uri, LAYER_NAME, "wms")
         if not lyr.isValid():
@@ -139,7 +170,13 @@ class AtrBpnBasemapPlugin:
         url, ok = QInputDialog.getText(self.iface.mainWindow(), PLUGIN_NAME,
                                        "URL tile (pakai {x}, {y}, {z}):", text=c["url"])
         if ok and url.strip():
-            self.apply_new(url.strip(), c["zmin"], c["zmax"], note="URL diatur manual")
+            url = url.strip()
+            # template boleh memuat {token}; URL dengan token jadi dipakai apa adanya
+            live = detector.refresh(url, log=log, attempts=1) if detector.needs_token(url) else url
+            if not live:
+                self.bar("Token sesi untuk {token} tidak didapat; URL tidak diubah.", Qgis.Warning, 10)
+                return
+            self.apply_new(live, c["zmin"], c["zmax"], note="URL diatur manual", template=url)
 
     def about(self):
         c = self.cfg()
@@ -148,7 +185,7 @@ class AtrBpnBasemapPlugin:
             "Menambahkan foto udara Peta Dasar ATR/BPN sebagai XYZ tile, lengkap dengan header Referer.\n\n"
             "Plugin membaca skrip peta di petadasar.atrbpn.go.id untuk menemukan URL tile terbaru, "
             "mengujinya, lalu memperbarui layer di proyek dan koneksi XYZ di Browser.\n\n"
-            "URL saat ini:\n%s\nZoom: %d-%d\nPengecekan terakhir: %s\n\n"
+            "URL saat ini:\n%s\nTemplate: %s\nZoom: %d-%d\nPengecekan terakhir: %s\n\n"
             "Kredit data:\n"
             "Foto udara dan Peta Dasar bersumber dari Kementerian Agraria dan Tata Ruang/"
             "Badan Pertanahan Nasional (ATR/BPN) Republik Indonesia, melalui layanan "
@@ -156,7 +193,7 @@ class AtrBpnBasemapPlugin:
             "Plugin ini dikembangkan secara independen oleh Fadli Arya Wisnu Baradi dan tidak "
             "berafiliasi dengan Kementerian ATR/BPN.\n\n"
             "Versi: %s\nRilis terbaru dan laporan masalah: %s"
-            % (c["url"], c["zmin"], c["zmax"], last, plugin_version(), detector.REPO_URL))
+            % (c["url"], c["template"], c["zmin"], c["zmax"], last, plugin_version(), detector.REPO_URL))
 
     # ---------- ekspor ----------
     def open_export(self):
@@ -174,7 +211,12 @@ class AtrBpnBasemapPlugin:
 
     def start_export(self):
         p = self.export_dlg.params()
-        p["url"] = self.cfg()["url"]
+        c = self.cfg()
+        p["url"], p["template"] = c["url"], c["template"]
+        if detector.needs_token(c["template"]):
+            fresh = detector.refresh(c["template"], log=log)
+            if fresh:
+                p["url"] = fresh
         if p["cut_layer"] is not None:
             try:
                 path, folder, ext, crs = exporter.prepare_cutline(p["cut_layer"], p["cut_selected"])
@@ -220,7 +262,9 @@ class AtrBpnBasemapPlugin:
         if getattr(self, "_unloaded", False):
             return
         c = self.cfg()
-        if c["auto"] and time.time() - c["last"] > CHECK_INTERVAL:
+        # pengguna yang baru memperbarui dari versi < 1.1.1 belum punya template URL
+        first_run = not QgsSettings().contains(SKEY + "template")
+        if c["auto"] and (first_run or time.time() - c["last"] > CHECK_INTERVAL):
             self.check_update(manual=False)
 
     def check_update(self, manual=True):
@@ -250,14 +294,22 @@ class AtrBpnBasemapPlugin:
             log("Terdeteksi: %s (zoom %s-%s, terverifikasi=%s, sumber=%s)" %
                 (result["url"], result["zmin"], result["zmax"], result["verified"], result.get("source")))
             src = " dari konfigurasi GitHub" if result.get("source") == "config" else ""
-            if result["url"] != c["url"] or result["zmin"] != c["zmin"] or result["zmax"] != c["zmax"]:
+            tpl = result.get("template") or result["url"]
+            if tpl == c["template"] and result["verified"] and result["url"] != c["url"] \
+                    and result["zmin"] == c["zmin"] and result["zmax"] == c["zmax"]:
+                # hanya token sesi yang berganti
+                self.apply_token(result["url"])
+                if manual:
+                    self.bar("URL masih sama dan aktif%s (token sesi diperbarui)." % src, Qgis.Success)
+                return
+            if tpl != c["template"] or result["zmin"] != c["zmin"] or result["zmax"] != c["zmax"]:
                 if not result["verified"]:
                     self.bar_link("URL baru terdeteksi tapi tile uji belum merespons; URL lama dipertahankan. "
                                   "Kandidat: %s" % result["url"], detector.RELEASES_URL, "Buka GitHub",
                                   Qgis.Warning, 15)
                     return
                 self.apply_new(result["url"], result["zmin"], result["zmax"],
-                               note="URL diperbarui otomatis" + src)
+                               note="URL diperbarui otomatis" + src, template=tpl)
             elif manual:
                 if result["verified"]:
                     self.bar("URL masih sama dan aktif%s." % src, Qgis.Success)
@@ -269,25 +321,79 @@ class AtrBpnBasemapPlugin:
         self.task = QgsTask.fromFunction("Cek URL ATR/BPN", run, on_finished=done)
         QgsApplication.taskManager().addTask(self.task)
 
-    def apply_new(self, url, zmin, zmax, note=""):
+    # ---------- token sesi ----------
+    def _on_project_read(self, *args):
+        QTimer.singleShot(2000, self.token_tick)
+
+    def _has_atr_layer(self):
+        return any(self._is_foto_layer(l) for l in QgsProject.instance().mapLayers().values())
+
+    def token_tick(self):
+        """Periksa token sesi di URL tile; perbarui di latar belakang bila sudah kedaluwarsa."""
+        if getattr(self, "_unloaded", False) or self.token_task is not None or self.task is not None:
+            return
+        c = self.cfg()
+        if not detector.needs_token(c["template"]) or not self._has_atr_layer():
+            return
+        pts = self._canvas_point()
+        url, tpl = c["url"], c["template"]
+
+        def run(task):
+            if detector.test_url(url, pts):
+                return None
+            return detector.refresh(tpl, pts, log=lambda m: log(m)) or ""
+
+        def done(exc, result=None):
+            self.token_task = None
+            if exc is not None:
+                log("Gagal memeriksa token sesi: %s" % exc, Qgis.Warning)
+            elif result == "":
+                log("Token sesi ATR/BPN kedaluwarsa dan belum bisa diperbarui; dicoba lagi nanti.",
+                    Qgis.Warning)
+            elif result and self.cfg()["template"] == tpl:
+                self.apply_token(result)
+
+        flags = QgsTask.CanCancel
+        if hasattr(QgsTask, "Silent"):  # QGIS >= 3.26: jangan munculkan notifikasi task
+            flags = flags | QgsTask.Silent
+        self.token_task = QgsTask.fromFunction("Perbarui token ATR/BPN", run, on_finished=done,
+                                               flags=flags)
+        QgsApplication.taskManager().addTask(self.token_task)
+
+    def apply_token(self, url):
+        """Ganti URL (token baru) di pengaturan, layer proyek, dan koneksi XYZ tanpa pesan."""
+        c = self.cfg()
+        if url == c["url"]:
+            return
+        self.save_cfg(url, c["zmin"], c["zmax"])
+        n = self.update_project_layers(c["url"], url, c["zmin"], c["zmax"])
+        self.update_connection(url, c["zmin"], c["zmax"])
+        log("Token sesi diperbarui (%d layer)" % n)
+
+    def apply_new(self, url, zmin, zmax, note="", template=None):
         old = self.cfg()["url"]
-        self.save_cfg(url, zmin, zmax)
+        self.save_cfg(url, zmin, zmax, template or url)
         n = self.update_project_layers(old, url, zmin, zmax)
         self.update_connection(url, zmin, zmax)
         self.bar("%s: %s (%d layer di proyek diperbarui)" % (note, url, n), Qgis.Success, 12)
+
+    @staticmethod
+    def _is_foto_layer(lyr):
+        """Layer foto udara ATR (termasuk URL lama /main/wms/ dan proxy meritech),
+        kecuali layer ATR lain seperti peta dasar ?tmi/."""
+        if lyr.providerType() != "wms":
+            return False
+        if lyr.customProperty(PROP):
+            return True
+        src = lyr.source()
+        ours = "petadasar" in src or "meritech" in src
+        return ours and "tmi/" not in src and "tmi%2F" not in src
 
     def update_project_layers(self, old_url, url, zmin, zmax):
         uri = detector.build_uri(url, zmin, zmax)
         n = 0
         for lyr in QgsProject.instance().mapLayers().values():
-            if lyr.providerType() != "wms":
-                continue
-            src = lyr.source()
-            ours = lyr.customProperty(PROP) or "petadasar" in src or "meritech" in src
-            # semua layer foto udara ATR (termasuk URL lama /main/wms/ dan proxy meritech),
-            # kecuali layer ATR lain seperti peta dasar ?tmi/
-            is_foto = lyr.customProperty(PROP) or ("tmi/" not in src and "tmi%2F" not in src)
-            if ours and is_foto:
+            if self._is_foto_layer(lyr):
                 lyr.setDataSource(uri, lyr.name(), "wms")
                 lyr.setCustomProperty(PROP, 1)
                 lyr.triggerRepaint()

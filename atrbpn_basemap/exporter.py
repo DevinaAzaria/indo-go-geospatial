@@ -13,6 +13,7 @@ import math
 import os
 import shutil
 import tempfile
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -138,6 +139,47 @@ class ExportTask(QgsTask):
         self.bounds = (ext.xMinimum(), ext.yMinimum(), ext.xMaximum(), ext.yMaximum())
         self.bounds_srs = srs_string(crs)
         self.dst_srs = srs_string(p["dst_crs"])
+        # token sesi di URL tile bisa kedaluwarsa di tengah ekspor: diperbarui bila perlu
+        self.url = p["url"]
+        self.template = p.get("template") or p["url"]
+        self._lock = threading.Lock()
+        self._checked = 0.0
+        self.renewals = 0
+
+    # ---------- token sesi ----------
+    def _renew_if_expired(self, used_url):
+        """Dipanggil saat tile kosong. Kembalikan URL baru bila token diperbarui, selain itu None.
+
+        Tile kosong bisa berarti area tanpa foto udara, jadi token hanya diperiksa
+        (lewat titik uji yang pasti tercakup) paling sering setiap 30 detik.
+        """
+        if not detector.needs_token(self.template):
+            return None
+        with self._lock:
+            if self.url != used_url:  # thread lain sudah memperbarui
+                return self.url
+            if time.time() - self._checked < 30:
+                return None
+            self._checked = time.time()
+            if detector.test_url(self.url):
+                return None
+            fresh = detector.refresh(self.template, log=log)
+            if fresh:
+                self.url = fresh
+                self.renewals += 1
+                log("Token sesi diperbarui di tengah ekspor")
+                return fresh
+            return None
+
+    def _fetch(self, x, y, z):
+        url = self.url
+        fill = lambda u: u.replace("{x}", str(x)).replace("{y}", str(y)).replace("{z}", str(z))
+        data = fetch_tile(fill(url))
+        if data is None and not self.isCanceled():
+            fresh = self._renew_if_expired(url)
+            if fresh:
+                data = fetch_tile(fill(fresh))
+        return data
 
     # ---------- langkah 1-2: mosaik ----------
     def _paste(self, ds, data, xoff, yoff):
@@ -186,14 +228,12 @@ class ExportTask(QgsTask):
                                 gdal.GCI_BlueBand, gdal.GCI_AlphaBand), start=1):
             ds.GetRasterBand(i).SetColorInterpretation(ci)
 
-        url = self.p["url"]
         jobs = [(x, y) for y in range(self.y0, self.y1 + 1) for x in range(self.x0, self.x1 + 1)]
         total = len(jobs)
         with ThreadPoolExecutor(max_workers=self.p["workers"]) as ex:
             futs = {}
             for x, y in jobs:
-                u = url.replace("{x}", str(x)).replace("{y}", str(y)).replace("{z}", str(z))
-                futs[ex.submit(fetch_tile, u)] = (x, y)
+                futs[ex.submit(self._fetch, x, y, z)] = (x, y)
             for i, f in enumerate(as_completed(futs), start=1):
                 if self.isCanceled():
                     for other in futs:

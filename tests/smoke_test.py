@@ -76,18 +76,35 @@ def run_smoke_test(zip_path=None, verbose=True):
         assert all(k in r["url"] for k in ("{x}", "{y}", "{z}")), "template URL tidak lengkap"
         found.update(r)
         warn = ""
-        if remote.get("tile_url") and remote["tile_url"] != r["url"]:
+        if remote.get("tile_url") and remote["tile_url"] != r.get("template", r["url"]):
             warn = " (BEDA dengan config.json: %s)" % remote["tile_url"]
-        return "%s, sumber=%s, zoom %s-%s%s" % (r["url"], r.get("source"), r["zmin"], r["zmax"], warn)
+        return "%s, sumber=%s, zoom %s-%s%s" % (r.get("template", r["url"]), r.get("source"),
+                                                r["zmin"], r["zmax"], warn)
     check("Deteksi URL otomatis", t_detect)
 
-    # 4. URL tersimpan
+    # 4. URL tersimpan (template dengan {token} diperbarui dulu tokennya)
     stored = QgsSettings().value("atrbpn_basemap/url", detector.DEFAULT_URL)
+    stored_tpl = QgsSettings().value("atrbpn_basemap/template", "") or stored
 
     def t_stored():
+        nonlocal stored
+        if detector.needs_token(stored_tpl):
+            live = detector.refresh(stored_tpl)
+            assert live, "token sesi untuk template tersimpan tidak bisa diperbarui: %s" % stored_tpl
+            stored = live
         assert detector.test_url(stored), "tile dari URL tersimpan kosong: %s" % stored
-        return stored
+        return stored_tpl
     check("URL tersimpan", t_stored)
+
+    # 4b. token sesi
+    def t_token():
+        tok = detector.fetch_token(remote)
+        assert tok, "token sesi tidak ditemukan di halaman peta"
+        tpl = found.get("template") or ""
+        assert detector.needs_token(tpl), "template hasil deteksi tidak memuat {token}: %s" % tpl
+        assert detector.test_url(detector.resolve(tpl, tok)), "tile dengan token baru kosong"
+        return "token %s..., template %s" % (tok[:8], tpl)
+    check("Token sesi", t_token)
 
     # 5. layer XYZ
     url = found.get("url") or stored
@@ -108,7 +125,7 @@ def run_smoke_test(zip_path=None, verbose=True):
             "dst_crs": QgsCoordinateReferenceSystem("EPSG:32749"),
             "pixel_size": 0.0, "resampling": "bilinear", "compression": "JPEG",
             "clip": True, "overviews": True, "add_map": False,
-            "out_path": out, "url": url,
+            "out_path": out, "url": url, "template": found.get("template") or url,
         }
         task = exporter.ExportTask(p)
         ok = task.run()  # dijalankan sinkron, tanpa task manager
