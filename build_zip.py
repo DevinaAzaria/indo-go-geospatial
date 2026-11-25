@@ -4,10 +4,10 @@ Membuat ZIP plugin ATR BPN Basemap untuk rilis GitHub (dan plugins.qgis.org).
 
 Cara menjalankan (pilih salah satu):
   a) QGIS > Plugins > Python Console, lalu ketik (sesuaikan folder versinya):
-       p = r"X:\GIS\Project Plugin\versi_1.1.0\build_zip.py"
+       p = r"X:\GIS\Project Plugin\versi_1.1.3\build_zip.py"
        exec(open(p, encoding="utf-8").read(), {"__file__": p})
   b) OSGeo4W Shell / terminal:
-       python "X:\GIS\Project Plugin\versi_1.1.0\build_zip.py"
+       python "X:\GIS\Project Plugin\versi_1.1.3\build_zip.py"
 
 Hasil: <folder versi>\dist\atrbpn_basemap-<versi>.zip
 """
@@ -60,6 +60,10 @@ else:
                     continue
                 full = os.path.join(base, fn)
                 arc = os.path.relpath(full, ROOT).replace("\\", "/")  # wajib garis miring /
-                z.write(full, arc)
+                info = zipfile.ZipInfo.from_file(full, arc)
+                info.external_attr = 0o644 << 16  # rw-r--r--, tanpa izin eksekusi
+                info.compress_type = zipfile.ZIP_DEFLATED
+                with open(full, "rb") as fh:
+                    z.writestr(info, fh.read())
                 n += 1
     print("ZIP berhasil dibuat (%d berkas): %s" % (n, out))
