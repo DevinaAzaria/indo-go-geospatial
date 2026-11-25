@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 """Deteksi otomatis URL tile foto udara dari situs Peta Dasar ATR/BPN.
 
@@ -21,6 +22,8 @@ import math
 import re
 import time
 from urllib.parse import urljoin, quote
+
+from .security_policy import require_network_access
 
 from qgis.core import QgsBlockingNetworkRequest, QgsSettings
 from qgis.PyQt.QtCore import QUrl, QByteArray
@@ -46,7 +49,7 @@ REPO_URL = "https://github.com/fadliarya/atrbpn-basemap"
 RELEASES_URL = REPO_URL + "/releases"
 ISSUES_URL = REPO_URL + "/issues"
 CONFIG_URL = "https://raw.githubusercontent.com/fadliarya/atrbpn-basemap/main/config.json"
-CONFIG_KEY = "atrbpn_basemap/config_url"  # bisa diganti untuk pengujian
+CONFIG_KEY = "indo_go_geospatial/config_url"  # bisa diganti untuk pengujian
 
 # Titik uji yang diketahui punya cakupan foto udara (lon, lat)
 TEST_POINTS = [
@@ -56,6 +59,7 @@ TEST_POINTS = [
 
 
 def http(url, referer=REFERER, post=None):
+    require_network_access()
     req = QNetworkRequest(QUrl(url))
     if referer:
         req.setRawHeader(b"Referer", referer.encode())
@@ -88,6 +92,7 @@ def _text(b):
 def fetch_config(log=None):
     """Baca config.json dari repo GitHub. Kembalikan dict (kosong bila gagal)."""
     log = log or (lambda *_: None)
+    require_network_access()
     url = QgsSettings().value(CONFIG_KEY, "") or CONFIG_URL
     try:
         status, _, body = http(url, referer="")
@@ -351,6 +356,7 @@ def detect(extra_points=(), log=None, attempts=DETECT_ATTEMPTS):
 
 
 def build_uri(url, zmin, zmax):
+    require_network_access()
     return ("type=xyz&url=" + quote(url, safe=":/?") +
             "&zmin=%d&zmax=%d" % (zmin, zmax) +
             "&http-header:referer=" + quote(REFERER, safe=""))

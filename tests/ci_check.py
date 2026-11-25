@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 """Pemeriksaan tanpa QGIS, dijalankan oleh GitHub Actions (dan bisa dijalankan lokal).
 
     python tests/ci_check.py            # cek metadata.txt dan config.json
@@ -14,11 +15,11 @@ import sys
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PKG = os.path.join(ROOT, "atrbpn_basemap")
+PKG = os.path.join(ROOT, "indo_go_geospatial")
 REQUIRED_META = ("name", "qgisMinimumVersion", "description", "about", "version", "author",
                  "email", "repository", "tracker", "homepage", "changelog", "icon")
 REQUIRED_IN_ZIP = ("__init__.py", "plugin.py", "detector.py", "exporter.py", "export_dialog.py",
-                   "metadata.txt", "icon.png", "LICENSE")
+                   "metadata.txt", "icon.png", "LICENSE", "security_policy.py")
 FORBIDDEN_IN_ZIP = ("__pycache__", ".pyc", ".pyo", ".bak", ".orig", ".tmp")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
@@ -76,9 +77,9 @@ if len(sys.argv) > 1:
     zp = sys.argv[1]
     try:
         names = zipfile.ZipFile(zp).namelist()
-        if not all(n.startswith("atrbpn_basemap/") for n in names):
-            fail("ZIP: ada berkas di luar folder atrbpn_basemap/")
-        miss = [f for f in REQUIRED_IN_ZIP if "atrbpn_basemap/" + f not in names]
+        if not all(n.startswith("indo_go_geospatial/") for n in names):
+            fail("ZIP: ada berkas di luar folder indo_go_geospatial/")
+        miss = [f for f in REQUIRED_IN_ZIP if "indo_go_geospatial/" + f not in names]
         if miss:
             fail("ZIP: berkas wajib hilang %s" % miss)
         junk = [n for n in names if any(b in n for b in FORBIDDEN_IN_ZIP)]

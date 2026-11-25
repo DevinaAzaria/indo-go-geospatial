@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 r"""
-Membuat ZIP plugin ATR BPN Basemap untuk rilis GitHub (dan plugins.qgis.org).
+Membuat ZIP plugin INDO-GO GeoSpatial untuk rilis GitHub (dan plugins.qgis.org).
 
 Cara menjalankan (pilih salah satu):
   a) QGIS > Plugins > Python Console, lalu ketik (sesuaikan folder versinya):
@@ -9,7 +10,7 @@ Cara menjalankan (pilih salah satu):
   b) OSGeo4W Shell / terminal:
        python "X:\GIS\Project Plugin\versi_1.1.3\build_zip.py"
 
-Hasil: <folder versi>\dist\atrbpn_basemap-<versi>.zip
+Hasil: <folder versi>\dist\indo_go_geospatial-<versi>.zip
 """
 import configparser
 import os
@@ -19,7 +20,7 @@ import zipfile
 ROOT = r"X:\GIS\Project Plugin"
 if "__file__" in globals():
     ROOT = os.path.dirname(os.path.abspath(__file__))
-PLUGIN = "atrbpn_basemap"
+PLUGIN = "indo_go_geospatial"
 SRC = os.path.join(ROOT, PLUGIN)
 SKIP_DIRS = {"__pycache__", ".git", ".idea", ".vscode"}
 SKIP_EXT = (".pyc", ".pyo", ".bak", ".orig", ".tmp")

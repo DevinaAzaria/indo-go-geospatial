@@ -1,20 +1,20 @@
 # INDO-GO GeoSpatial
 
-**Land Intelligence & Spatial Due Diligence — development preview 0.1.0**
+**Land Intelligence & Spatial Due Diligence — development preview 0.1.1**
 
 Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com/fadliarya/atrbpn-basemap), originally developed by Fadli Arya Wisnu Baradi. Modified on 2026-11-25. Licensed under GPL-2.0-or-later; original copyright, license and data attribution remain intact.
 
 ## Status / Status pengembangan
 
 - Baseline: upstream 1.1.3, commit `e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a`.
-- This preview changes identity and documentation only, not imagery access mechanisms. No production release or runtime security certification yet.
-- Package directory and settings identifiers remain compatible with the original for now. **Do not install alongside the original plugin**; isolated QGIS profile testing is required. The original icon is retained temporarily.
-- Remote configuration and upstream release notices still use the original project pending security review. New issue reports belong to [INDO-GO Issues](https://github.com/DevinaAzaria/indo-go-geospatial/issues), not the original author.
+- This security preview is intentionally offline: no network requests, imagery layer creation, token refresh, or export via plugin UI. No production release or runtime security certification yet.
+- Package directory and settings identifiers are now `indo_go_geospatial`. The original icon remains temporarily; test in an isolated QGIS profile before any use.
+- Remote configuration and upstream release notices are disabled pending review. New issue reports belong to [INDO-GO Issues](https://github.com/DevinaAzaria/indo-go-geospatial/issues), not the original author.
 - Belum dipublikasikan sebagai plugin INDO-GO di repositori resmi QGIS. Jangan memasang pada lingkungan produksi sebelum audit dan pengujian selesai.
 
 ## Existing features / Fitur dasar
 
-Existing baseline features: XYZ imagery layer, URL detection and GeoTIFF export, subject to the data provider's rules. QGIS 3.22–3.99 is the upstream compatibility declaration, not a new compatibility test.
+Inherited features (disabled in this preview): XYZ imagery layer, URL detection and GeoTIFF export. The only active QGIS action is the About dialog. QGIS 3.22–3.99 is the upstream compatibility declaration, not a new compatibility test.
 
 ## Data rights and legal limitations / Hak data dan batasan hukum
 
@@ -29,7 +29,7 @@ Imagery and base maps are supplied by Kementerian ATR/BPN through [Peta Dasar AT
 
 ## Development / Pengembangan
 
-Build and validate only in an isolated environment after reviewing source code. Existing upstream CI checks metadata, syntax and ZIP structure; these are not runtime or security tests. No INDO-GO release is currently available.
+Build and validate only in an isolated environment after reviewing source code. CI checks syntax, metadata, ZIP structure and offline security policy. It does not validate QGIS runtime or provider authorization. No INDO-GO release is currently available.
 
 See [upstream documentation](https://github.com/fadliarya/atrbpn-basemap/tree/e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a) for inherited feature details. The original README is retained in this repository as [UPSTREAM_README.md](UPSTREAM_README.md).
 

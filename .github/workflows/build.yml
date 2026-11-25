@@ -1,10 +1,14 @@
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline policy checks and least privilege.
 name: Cek dan build plugin
 
 on:
   push:
-    branches: [main]
+    branches: [main, branding/indo-go-v0.1]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -17,10 +21,13 @@ jobs:
           python-version: "3.12"
 
       - name: Cek sintaks Python
-        run: python -m py_compile atrbpn_basemap/*.py tests/*.py
+        run: python -m py_compile indo_go_geospatial/*.py tests/*.py
 
       - name: Cek metadata.txt dan config.json
         run: python tests/ci_check.py
+
+      - name: Offline security policy tests
+        run: python tests/security_check.py
 
       - name: Build ZIP plugin
         run: |
@@ -33,6 +40,6 @@ jobs:
       - name: Simpan ZIP sebagai artifact
         uses: actions/upload-artifact@v4
         with:
-          name: atrbpn_basemap-zip
+          name: indo_go_geospatial-zip
           path: dist/*.zip
           retention-days: 14

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 """Dialog pengaturan ekspor foto udara ATR/BPN."""
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject
 from qgis.gui import (QgsExtentGroupBox, QgsFileWidget, QgsMapLayerComboBox,
@@ -8,6 +9,7 @@ from qgis.PyQt.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox
                                  QMessageBox, QSpinBox, QVBoxLayout)
 
 from . import exporter
+from .security_policy import MAX_TILES, MAX_WORKERS
 
 try:
     POLYGON_FILTER = Qgis.LayerFilter.PolygonLayer
@@ -20,7 +22,7 @@ COMPRESSION = [("JPEG kualitas 90 (ukuran kecil, lossy)", "JPEG"),
                ("DEFLATE (lossless)", "DEFLATE"),
                ("LZW (lossless)", "LZW"),
                ("Tanpa kompresi", "NONE")]
-TILE_WARN = 20000
+TILE_WARN = MAX_TILES
 
 
 class ExportDialog(QDialog):
@@ -64,8 +66,8 @@ class ExportDialog(QDialog):
         self.zoom.setValue(min(20, cfg["zmax"]))
         self.zoom.setToolTip("Zoom 20 kira-kira setara resolusi asli foto udara (±15 cm).")
         self.workers = QSpinBox()
-        self.workers.setRange(1, 8)
-        self.workers.setValue(4)
+        self.workers.setRange(1, MAX_WORKERS)
+        self.workers.setValue(1)
         self.info = QLabel()
         self.info.setWordWrap(True)
         f.addRow("Zoom level tile", self.zoom)
@@ -190,10 +192,6 @@ class ExportDialog(QDialog):
             QMessageBox.warning(self, self.windowTitle(), "Extent belum valid.")
             return
         if self._est["tiles"] > TILE_WARN:
-            r = QMessageBox.question(
-                self, self.windowTitle(),
-                "Ekspor ini akan mengunduh %d tile (±%.0f MB). Lanjutkan?" %
-                (self._est["tiles"], self._est["mb"]))
-            if r != QMessageBox.Yes:
-                return
+            QMessageBox.warning(self, self.windowTitle(), "Ekspor melebihi batas tile preview.")
+            return
         super().accept()
