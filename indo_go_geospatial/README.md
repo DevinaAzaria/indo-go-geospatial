@@ -1,6 +1,6 @@
 # INDO-GO GeoSpatial
 
-**Land Intelligence & Spatial Due Diligence — development preview 0.1.1**
+**Land Intelligence & Spatial Due Diligence — development preview 0.1.2**
 
 Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com/fadliarya/atrbpn-basemap), originally developed by Fadli Arya Wisnu Baradi. Modified on 2026-11-25. Licensed under GPL-2.0-or-later; original copyright, license and data attribution remain intact.
 
@@ -8,7 +8,7 @@ Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com
 
 - Baseline: upstream 1.1.3, commit `e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a`.
 - This security preview is intentionally offline: no network requests, imagery layer creation, token refresh, or export via plugin UI. No production release or runtime security certification yet.
-- Package directory and settings identifiers are now `indo_go_geospatial`. The original icon remains temporarily; test in an isolated QGIS profile before any use.
+- Package directory and settings identifiers are now `indo_go_geospatial`. An independent SVG icon is included; test in an isolated QGIS profile before any use.
 - Remote configuration and upstream release notices are disabled pending review. New issue reports belong to [INDO-GO Issues](https://github.com/DevinaAzaria/indo-go-geospatial/issues), not the original author.
 - Belum dipublikasikan sebagai plugin INDO-GO di repositori resmi QGIS. Jangan memasang pada lingkungan produksi sebelum audit dan pengujian selesai.
 
@@ -29,7 +29,7 @@ Imagery and base maps are supplied by Kementerian ATR/BPN through [Peta Dasar AT
 
 ## Development / Pengembangan
 
-Build and validate only in an isolated environment after reviewing source code. CI checks syntax, metadata, ZIP structure and offline security policy. It does not validate QGIS runtime or provider authorization. No INDO-GO release is currently available.
+Build and validate only in an isolated environment after reviewing source code. CI checks syntax, metadata, ZIP structure, offline security policy and a simulated QGIS lifecycle using mock Qt classes. See ../tests/QGIS_RUNTIME.md for the actual QGIS protocol. It does not validate QGIS runtime or provider authorization. No INDO-GO release is currently available.
 
 See [upstream documentation](https://github.com/fadliarya/atrbpn-basemap/tree/e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a) for inherited feature details. The original README is retained in this repository as [UPSTREAM_README.md](UPSTREAM_README.md).
 

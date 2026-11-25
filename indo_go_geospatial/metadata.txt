@@ -1,3 +1,4 @@
+# Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 [general]
@@ -8,13 +9,15 @@ description=Offline security preview for Indonesian geospatial due diligence; ne
 about=Independent INDO-GO GeoSpatial derivative of ATR BPN Basemap 1.1.3 by Fadli Arya Wisnu Baradi (GPL-2.0-or-later). Report issues via this project's GitHub; metadata email is the original author's, not derivative support.
     This version is an offline shell only. No remote configuration, aerial imagery, session tokens, or export is enabled pending review. Inherited network code is retained but guarded.
     This plugin is developed independently and is not affiliated with the Ministry of Agrarian Affairs and Spatial Planning/National Land Agency (ATR/BPN). The imagery remains the property of ATR/BPN; please follow the provider's terms of use.
-version=0.1.1
+version=0.1.2
 author=Fadli Arya Wisnu Baradi (original author); INDO-GO GeoSpatial (derivative)
 email=fadli.aryawisnu@gmail.com
 homepage=https://github.com/DevinaAzaria/indo-go-geospatial
 tracker=https://github.com/DevinaAzaria/indo-go-geospatial/issues
 repository=https://github.com/DevinaAzaria/indo-go-geospatial
-changelog=0.1.1
+changelog=0.1.2
+    - Independent SVG icon; idempotent activation; offline simulated lifecycle tests and manual QGIS test protocol. Network remains disabled.
+    0.1.1
     - Offline security preview: isolated package, disabled network and export execution, conservative export limits, and offline CI tests.
     0.1.0
     - Independent branding preview based on ATR BPN Basemap 1.1.3; no new imagery access features. Not released or security-certified.
@@ -40,5 +43,5 @@ tags=basemap,xyz,indonesia,aerial imagery,orthophoto,atr bpn
 experimental=True
 deprecated=False
 hasProcessingProvider=no
-icon=icon.png
+icon=icon.svg
 license=GPL-2.0-or-later

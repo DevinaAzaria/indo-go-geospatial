@@ -29,6 +29,9 @@ jobs:
       - name: Offline security policy tests
         run: python tests/security_check.py
 
+      - name: Simulated QGIS lifecycle tests
+        run: python tests/lifecycle_check.py
+
       - name: Build ZIP plugin
         run: |
           python build_zip.py

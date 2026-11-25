@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 """Offline-only QGIS shell derived from ATR BPN Basemap 1.1.3.
 Original author: Fadli Arya Wisnu Baradi. Full original implementation remains in Git history.
@@ -29,7 +30,9 @@ class IndoGoGeoSpatialPlugin:
         self.menu = "&" + PLUGIN_NAME
 
     def initGui(self):
-        icon = QIcon(str(Path(__file__).with_name("icon.png")))
+        if self.actions:
+            return
+        icon = QIcon(str(Path(__file__).with_name("icon.svg")))
         action = QAction(icon, "Tentang INDO-GO GeoSpatial", self.iface.mainWindow())
         action.triggered.connect(self.about)
         self.iface.addPluginToMenu(self.menu, action)
