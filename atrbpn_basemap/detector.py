@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 """Deteksi otomatis URL tile foto udara dari situs Peta Dasar ATR/BPN.
 
 Cara kerja:
@@ -38,6 +39,9 @@ DEFAULT_TOKEN_VARS = ["bw"]  # nama variabel JS yang berisi token sesi
 DETECT_ATTEMPTS = 3  # token baru kadang belum aktif sesaat setelah sesi diganti server
 RETRY_DELAY = 3  # detik
 
+# Original network configuration remains unchanged pending security and data-access review.
+PROJECT_URL = "https://github.com/DevinaAzaria/indo-go-geospatial"
+UPSTREAM_BASELINE = "1.1.3"
 REPO_URL = "https://github.com/fadliarya/atrbpn-basemap"
 RELEASES_URL = REPO_URL + "/releases"
 ISSUES_URL = REPO_URL + "/issues"

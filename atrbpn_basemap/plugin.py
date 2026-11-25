@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 import configparser
 import contextlib
 import os
@@ -14,9 +15,9 @@ from qgis.PyQt.QtWidgets import QAction, QInputDialog, QMessageBox, QPushButton
 from . import detector, exporter
 from .export_dialog import ExportDialog
 
-PLUGIN_NAME = "ATR BPN Basemap"
-LAYER_NAME = "ATR BPN Foto Udara"
-CONN_NAME = "ATR BPN Foto Udara"
+PLUGIN_NAME = "INDO-GO GeoSpatial"
+LAYER_NAME = "INDO-GO | Foto Udara ATR/BPN"
+CONN_NAME = "INDO-GO Foto Udara ATR/BPN"
 SKEY = "atrbpn_basemap/"
 PROP = "atrbpn_basemap"
 CHECK_INTERVAL = 24 * 3600  # cek otomatis paling sering sekali sehari
@@ -128,10 +129,10 @@ class AtrBpnBasemapPlugin:
         """Tampilkan info versi baru dan pengumuman dari config.json (sekali per nilai)."""
         s = QgsSettings()
         latest = str(remote.get("latest_version") or "")
-        if latest and detector.version_tuple(latest) > detector.version_tuple(plugin_version()) \
+        if latest and detector.version_tuple(latest) > detector.version_tuple(detector.UPSTREAM_BASELINE) \
                 and s.value(SKEY + "notified_version", "") != latest:
             s.setValue(SKEY + "notified_version", latest)
-            self.bar_link("Versi baru %s tersedia (terpasang: %s)." % (latest, plugin_version()),
+            self.bar_link("Versi upstream %s tersedia (baseline: %s)." % (latest, detector.UPSTREAM_BASELINE),
                           detector.RELEASES_URL, "Unduh di GitHub", Qgis.Info)
         msg = str(remote.get("message") or "").strip()
         if msg and s.value(SKEY + "notified_message", "") != msg:
@@ -181,10 +182,10 @@ class AtrBpnBasemapPlugin:
             "Foto udara dan Peta Dasar bersumber dari Kementerian Agraria dan Tata Ruang/"
             "Badan Pertanahan Nasional (ATR/BPN) Republik Indonesia, melalui layanan "
             "https://petadasar.atrbpn.go.id. Hak atas data sepenuhnya milik Kementerian ATR/BPN.\n\n"
-            "Plugin ini dikembangkan secara independen oleh Fadli Arya Wisnu Baradi dan tidak "
-            "berafiliasi dengan Kementerian ATR/BPN.\n\n"
-            "Versi: %s\nRilis terbaru dan laporan masalah: %s"
-            % (c["url"], c["template"], c["zmin"], c["zmax"], last, plugin_version(), detector.REPO_URL))
+            "INDO-GO GeoSpatial merupakan turunan independen ATR BPN Basemap 1.1.3, "
+            "karya asli Fadli Arya Wisnu Baradi (GPL-2.0-or-later). Tidak berafiliasi dengan ATR/BPN.\n\n"
+            "Versi INDO-GO: %s\nRepositori dan laporan masalah: %s"
+            % (c["url"], c["template"], c["zmin"], c["zmax"], last, plugin_version(), detector.PROJECT_URL))
 
     # ---------- ekspor ----------
     def open_export(self):

@@ -1,18 +1,22 @@
+# Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 [general]
-name=ATR BPN Basemap
+name=INDO-GO GeoSpatial
 qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Adds ATR/BPN (Indonesia) Peta Dasar aerial imagery as an XYZ basemap and keeps its tile URL up to date automatically.
-about=The plugin reads the map scripts of the ATR/BPN Peta Dasar website (petadasar.atrbpn.go.id) to find the latest aerial imagery tile URL, tests a sample tile, then updates layers in the current project and the XYZ connection in the Browser panel. The tile session token is refreshed automatically in the background. Imagery for a selected extent can also be exported to GeoTIFF.
+about=Independent INDO-GO GeoSpatial derivative of ATR BPN Basemap 1.1.3 by Fadli Arya Wisnu Baradi (GPL-2.0-or-later). Report issues via this project's GitHub; metadata email is the original author's, not derivative support.
+    The plugin reads the map scripts of the ATR/BPN Peta Dasar website (petadasar.atrbpn.go.id) to find the latest aerial imagery tile URL, tests a sample tile, then updates layers in the current project and the XYZ connection in the Browser panel. The tile session token is refreshed automatically in the background. Imagery for a selected extent can also be exported to GeoTIFF.
     Limitations: coverage is limited to areas of Indonesia available in ATR/BPN Peta Dasar, and an internet connection is required. Data availability depends entirely on the ATR/BPN service.
     This plugin is developed independently and is not affiliated with the Ministry of Agrarian Affairs and Spatial Planning/National Land Agency (ATR/BPN). The imagery remains the property of ATR/BPN; please follow the provider's terms of use.
-version=1.1.3
-author=Fadli Arya Wisnu Baradi
+version=0.1.0
+author=Fadli Arya Wisnu Baradi (original author); INDO-GO GeoSpatial (derivative)
 email=fadli.aryawisnu@gmail.com
-homepage=https://github.com/fadliarya/atrbpn-basemap
-tracker=https://github.com/fadliarya/atrbpn-basemap/issues
-repository=https://github.com/fadliarya/atrbpn-basemap
-changelog=1.1.3
+homepage=https://github.com/DevinaAzaria/indo-go-geospatial
+tracker=https://github.com/DevinaAzaria/indo-go-geospatial/issues
+repository=https://github.com/DevinaAzaria/indo-go-geospatial
+changelog=0.1.0
+    - Independent branding preview based on ATR BPN Basemap 1.1.3; no new imagery access features. Not released or security-certified.
+    1.1.3
     - Security scan fixes for the QGIS plugin repository: no bare try/except/pass blocks, renamed URL token placeholder constant, files packaged without executable permission. No functional changes.
     1.1.2
     - Plugin description, about and changelog are now in English, as required by the QGIS plugin repository. No functional changes.

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 """Ekspor foto udara ATR/BPN menjadi GeoTIFF.
 
 Alur kerja:
@@ -25,7 +26,7 @@ from . import detector
 
 ORIGIN = 20037508.342789244
 TILE = 256
-LOG_TAG = "ATR BPN Basemap"
+LOG_TAG = "INDO-GO GeoSpatial"
 
 
 def log(msg, level=Qgis.Info):

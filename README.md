@@ -1,164 +1,38 @@
-# ATR BPN Basemap (QGIS Plugin)
+# INDO-GO GeoSpatial
 
-**[Bahasa Indonesia](#bahasa-indonesia) | [English](#english)**
+**Land Intelligence & Spatial Due Diligence — development preview 0.1.0**
 
-Plugin QGIS untuk menampilkan dan mengekspor foto udara Peta Dasar ATR/BPN.
-A QGIS plugin to display and export ATR/BPN Peta Dasar aerial imagery.
+Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com/fadliarya/atrbpn-basemap), originally developed by Fadli Arya Wisnu Baradi. Modified on 2026-11-25. Licensed under GPL-2.0-or-later; original copyright, license and data attribution remain intact.
 
----
+## Status / Status pengembangan
 
-## Bahasa Indonesia
+- Baseline: upstream 1.1.3, commit `e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a`.
+- This preview changes identity and documentation only, not imagery access mechanisms. No production release or runtime security certification yet.
+- Package directory and settings identifiers remain compatible with the original for now. **Do not install alongside the original plugin**; isolated QGIS profile testing is required. The original icon is retained temporarily.
+- Remote configuration and upstream release notices still use the original project pending security review. New issue reports belong to [INDO-GO Issues](https://github.com/DevinaAzaria/indo-go-geospatial/issues), not the original author.
+- Belum dipublikasikan sebagai plugin INDO-GO di repositori resmi QGIS. Jangan memasang pada lingkungan produksi sebelum audit dan pengujian selesai.
 
-Plugin QGIS untuk menambahkan foto udara Peta Dasar ATR/BPN ([petadasar.atrbpn.go.id](https://petadasar.atrbpn.go.id)) sebagai basemap XYZ. URL tile diperbarui secara otomatis dari situs ATR/BPN, sehingga Anda tidak perlu mencari dan menyalin URL secara manual setiap kali alamatnya berubah. Foto udara juga dapat diekspor menjadi GeoTIFF.
+## Existing features / Fitur dasar
 
-### Fitur
+Existing baseline features: XYZ imagery layer, URL detection and GeoTIFF export, subject to the data provider's rules. QGIS 3.22–3.99 is the upstream compatibility declaration, not a new compatibility test.
 
-- Menambahkan foto udara ATR/BPN sebagai layer XYZ dengan satu klik, lengkap dengan header Referer yang dibutuhkan server.
-- Mendeteksi URL tile terbaru dari skrip peta di situs ATR/BPN, lalu menguji tile contoh sebelum dipakai.
-- Memperbarui layer di proyek yang sedang terbuka dan koneksi XYZ di panel Browser.
-- Pengecekan otomatis di latar belakang, paling sering sekali sehari (dapat dimatikan).
-- Bila situs ATR/BPN berubah, plugin memakai URL cadangan dari konfigurasi di GitHub dan memberi tahu bila ada versi baru.
-- Ekspor foto udara ke GeoTIFF dengan pilihan:
-  - extent (canvas, layer, draw on canvas, atau koordinat manual),
-  - pemotongan mengikuti poligon (opsional, bisa hanya fitur terpilih),
-  - zoom level 16 sampai 21 (zoom 20 setara resolusi asli ±15 cm),
-  - CRS output, ukuran piksel, dan metode resampling,
-  - kompresi JPEG, DEFLATE, atau LZW, serta overview internal.
-- Ekspor berjalan di latar belakang dan dapat dibatalkan dari panel Task.
+## Data rights and legal limitations / Hak data dan batasan hukum
 
-### Persyaratan
+Imagery and base maps are supplied by Kementerian ATR/BPN through [Peta Dasar ATR/BPN](https://petadasar.atrbpn.go.id/). The GPL applies to the code, not the imagery. Use only authorized access and permitted exports; respect provider terms and limits. This independent project has no affiliation with ATR/BPN. Imagery and spatial measurements are indicative, not proof of title, legal boundaries, or official cadastral survey results. Never commit client records, certificates, tokens or private parcel data to this public repository.
 
-- QGIS 3.22 atau lebih baru (diuji pada QGIS 3.44).
-- Koneksi internet.
+## Roadmap (planned, not implemented)
 
-### Instalasi
+1. Security and data-rights review; isolate plugin identity and configuration.
+2. Parcel area and coordinate tools using appropriate CRS.
+3. Spatial due diligence checklist and local project data management.
+4. Indicative report generation with sources, timestamps and limitations.
 
-Plugin ini tersedia di [repositori resmi plugin QGIS](https://plugins.qgis.org/plugins/atrbpn_basemap/) dengan status *experimental*.
+## Development / Pengembangan
 
-1. Buka QGIS, pilih menu **Plugins > Manage and Install Plugins**.
-2. Pada tab **Settings**, centang **Show also experimental plugins**, lalu klik **Reload repository**.
-3. Pada tab **All**, cari `ATR BPN Basemap`, lalu klik **Install Plugin**.
-4. Menu plugin akan muncul di **Plugins > ATR BPN Basemap**, dan ikonnya di toolbar Plugins.
+Build and validate only in an isolated environment after reviewing source code. Existing upstream CI checks metadata, syntax and ZIP structure; these are not runtime or security tests. No INDO-GO release is currently available.
 
-**Memperbarui ke versi baru:** QGIS akan memberi tahu bila ada versi baru. Buka tab **Upgradeable** di Plugin Manager, lalu klik **Upgrade Plugin**.
+See [upstream documentation](https://github.com/fadliarya/atrbpn-basemap/tree/e36cbcb0f42ed15143608e2b14f3f4d4328a8c9a) for inherited feature details. The original README is retained in this repository as [UPSTREAM_README.md](UPSTREAM_README.md).
 
-**Alternatif: pasang dari berkas ZIP.** Unduh `atrbpn_basemap-<versi>.zip` dari halaman [Releases](https://github.com/fadliarya/atrbpn-basemap/releases) (**jangan diekstrak**), lalu di Plugin Manager pilih tab **Install from ZIP**. Unduhan "Source code (zip)" di halaman rilis bukan berkas instalasi plugin.
+## License / Lisensi
 
-### Cara Pakai
-
-Semua perintah ada di menu **Plugins > ATR BPN Basemap**:
-
-| Menu | Fungsi |
-|---|---|
-| Tambahkan Foto Udara ATR/BPN | Menambahkan layer foto udara ke proyek (juga tersedia sebagai tombol di toolbar Plugins) |
-| Ekspor foto udara ke GeoTIFF... | Mengunduh tile pada extent dan zoom level tertentu lalu menyimpannya sebagai GeoTIFF |
-| Cek & perbarui URL dari situs ATR/BPN | Mencari URL tile terbaru secara manual |
-| Atur URL secara manual... | Mengisi URL tile sendiri bila deteksi otomatis gagal |
-| Cek otomatis saat QGIS dibuka | Menyalakan atau mematikan pengecekan otomatis |
-| Tentang plugin | Informasi plugin, URL yang sedang dipakai, dan kredit data |
-
-Catatan:
-- Foto udara baru tampil mulai **zoom 16** (sekitar skala 1:8.000). Saat di-zoom out lebih jauh, layer memang terlihat kosong.
-- Pada ekspor, perhatikan **estimasi** jumlah tile dan ukuran berkas sebelum menekan **Ekspor**. Untuk area satu desa, zoom 19 dengan kompresi JPEG biasanya sudah memadai.
-- Ekspor pertama pada suatu area bisa terasa lambat karena server ATR/BPN membuat tile saat itu juga.
-
-### Batasan
-
-- Cakupan data hanya wilayah Indonesia yang tersedia di Peta Dasar ATR/BPN. Di luar area tersebut tile akan kosong.
-- Ketersediaan data sepenuhnya bergantung pada layanan ATR/BPN.
-- Gunakan fitur ekspor secara wajar (extent kecil, jumlah unduhan paralel rendah) agar tidak membebani server penyedia.
-
-### Kredit Data
-
-Foto udara dan Peta Dasar yang ditampilkan plugin ini bersumber dari **Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional (ATR/BPN) Republik Indonesia** melalui layanan [Peta Dasar ATR/BPN](https://petadasar.atrbpn.go.id). Seluruh hak atas data tetap milik Kementerian ATR/BPN. Kredit ini juga ditampilkan pada menu **Tentang plugin**.
-
-### Penafian
-
-Plugin ini dikembangkan secara independen dan **tidak berafiliasi** dengan Kementerian Agraria dan Tata Ruang/Badan Pertanahan Nasional. Pengguna bertanggung jawab mematuhi ketentuan penggunaan data dari penyedia.
-
-### Laporan Masalah
-
-Laporkan bug atau saran melalui halaman [Issues](https://github.com/fadliarya/atrbpn-basemap/issues).
-
----
-
-## English
-
-A QGIS plugin that adds aerial imagery from the ATR/BPN Peta Dasar service ([petadasar.atrbpn.go.id](https://petadasar.atrbpn.go.id)) as an XYZ basemap. The tile URL is updated automatically from the ATR/BPN website, so you no longer need to find and copy the URL by hand every time it changes. The imagery can also be exported to GeoTIFF.
-
-### Features
-
-- Adds ATR/BPN aerial imagery as an XYZ layer in one click, including the Referer header required by the server.
-- Detects the latest tile URL from the map script on the ATR/BPN website and tests a sample tile before using it.
-- Updates layers in the open project and the XYZ connection in the Browser panel.
-- Automatic background check, at most once a day (can be turned off).
-- If the ATR/BPN website changes, the plugin falls back to a URL from the configuration on GitHub and notifies you when a new version is available.
-- Export imagery to GeoTIFF with options for:
-  - extent (canvas, layer, draw on canvas, or manual coordinates),
-  - clipping to a polygon layer (optional, selected features only if needed),
-  - zoom level 16 to 21 (zoom 20 matches the native resolution of about 15 cm),
-  - output CRS, pixel size, and resampling method,
-  - JPEG, DEFLATE, or LZW compression, plus internal overviews.
-- Exports run in the background and can be cancelled from the Task panel.
-
-### Requirements
-
-- QGIS 3.22 or later (tested on QGIS 3.44).
-- Internet connection.
-
-### Installation
-
-The plugin is available in the [official QGIS plugin repository](https://plugins.qgis.org/plugins/atrbpn_basemap/) as an *experimental* plugin.
-
-1. In QGIS, open **Plugins > Manage and Install Plugins**.
-2. On the **Settings** tab, tick **Show also experimental plugins**, then click **Reload repository**.
-3. On the **All** tab, search for `ATR BPN Basemap` and click **Install Plugin**.
-4. The plugin menu appears under **Plugins > ATR BPN Basemap**, with its icon on the Plugins toolbar.
-
-**Updating to a new version:** QGIS notifies you when a new version is available. Open the **Upgradeable** tab in the Plugin Manager and click **Upgrade Plugin**.
-
-**Alternative: install from a ZIP file.** Download `atrbpn_basemap-<version>.zip` from the [Releases](https://github.com/fadliarya/atrbpn-basemap/releases) page (**do not unzip it**), then use the **Install from ZIP** tab in the Plugin Manager. The "Source code (zip)" download on the release page is not the plugin installer.
-
-### Usage
-
-All commands are under **Plugins > ATR BPN Basemap** (menu labels are in Indonesian):
-
-| Menu | Function |
-|---|---|
-| Tambahkan Foto Udara ATR/BPN | Add the aerial imagery layer to the project (also available as a Plugins toolbar button) |
-| Ekspor foto udara ke GeoTIFF... | Download tiles for a given extent and zoom level and save them as GeoTIFF |
-| Cek & perbarui URL dari situs ATR/BPN | Check for the latest tile URL manually |
-| Atur URL secara manual... | Enter a tile URL yourself if automatic detection fails |
-| Cek otomatis saat QGIS dibuka | Turn the automatic check on or off |
-| Tentang plugin | Plugin information, the URL in use, and data credits |
-
-Notes:
-- Imagery is only shown from **zoom 16** (about 1:8,000 scale). When zoomed out further, the layer appears empty by design.
-- When exporting, check the **estimate** of tile count and file size before clicking **Ekspor**. For a village-sized area, zoom 19 with JPEG compression is usually enough.
-- The first export of an area can be slow because the ATR/BPN server generates the tiles on demand.
-
-### Limitations
-
-- Coverage is limited to the parts of Indonesia available in ATR/BPN Peta Dasar. Tiles outside that area are empty.
-- Data availability depends entirely on the ATR/BPN service.
-- Please use the export feature responsibly (small extents, few parallel downloads) to avoid overloading the provider's server.
-
-### Data Credits
-
-The aerial imagery and base maps shown by this plugin are provided by the **Ministry of Agrarian Affairs and Spatial Planning/National Land Agency (Kementerian ATR/BPN) of the Republic of Indonesia** through the [Peta Dasar ATR/BPN](https://petadasar.atrbpn.go.id) service. All rights to the data remain with Kementerian ATR/BPN. This credit is also shown in the **Tentang plugin** (About) dialog.
-
-### Disclaimer
-
-This plugin is developed independently and is **not affiliated** with the Ministry of Agrarian Affairs and Spatial Planning/National Land Agency. Users are responsible for complying with the data provider's terms of use.
-
-### Issues
-
-Report bugs or suggestions on the [Issues](https://github.com/fadliarya/atrbpn-basemap/issues) page.
-
----
-
-## Lisensi / License
-
-GNU General Public License v2.0 atau lebih baru / or later. Lihat / See [LICENSE](LICENSE).
-
-Pengembang / Developer: Fadli Arya Wisnu Baradi
+[GPL-2.0-or-later](LICENSE). Original author: Fadli Arya Wisnu Baradi. INDO-GO GeoSpatial is a separate derivative and must not be represented as the original project or an official ATR/BPN product.
