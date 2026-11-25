@@ -33,7 +33,7 @@ DEFAULT_SCRIPTS = ["?js/map5/", "?js/2/map5/"]
 # halaman yang dimuat lewat POST (sejak Nov 2026 peta ada di iframe "m=90")
 DEFAULT_POST_PAGES = ["m=90&app=&t={t}"]
 FOTO_KEYWORDS = ("foto airbone", "foto airborne", "csrt-foto", "drone")
-TOKEN = "{token}"  # placeholder token sesi di template URL
+SESSION_SLOT = "{token}"  # placeholder token sesi di template URL
 DEFAULT_TOKEN_VARS = ["bw"]  # nama variabel JS yang berisi token sesi
 DETECT_ATTEMPTS = 3  # token baru kadang belum aktif sesaat setelah sesi diganti server
 RETRY_DELAY = 3  # detik
@@ -66,6 +66,14 @@ def http(url, referer=REFERER, post=None):
     status = rep.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     ctype = bytes(rep.rawHeader(b"Content-Type")).decode("latin1").lower()
     return status, ctype, bytes(rep.content())
+
+
+def http_safe(url, referer=REFERER, post=None):
+    """Seperti http(), tetapi mengembalikan (None, "", b"") bila permintaan gagal."""
+    try:
+        return http(url, referer=referer, post=post)
+    except Exception:
+        return None, "", b""
 
 
 def _text(b):
@@ -167,10 +175,7 @@ def test_url(url, extra_points=(), zoom=18):
     for lon, lat in list(extra_points) + TEST_POINTS:
         x, y = _tile_xy(lon, lat, zoom)
         u = url.replace("{x}", str(x)).replace("{y}", str(y)).replace("{z}", str(zoom))
-        try:
-            status, ctype, body = http(u)
-        except Exception:
-            continue
+        status, ctype, body = http_safe(u)
         if status == 200 and "image" in ctype and len(body) > 500:
             return True
     return False
@@ -213,19 +218,19 @@ def fetch_token(remote=None, log=None):
 def make_template(url, token):
     """Ganti nilai token di URL dengan placeholder {token}."""
     if token and token in url:
-        return url.replace(token, TOKEN)
+        return url.replace(token, SESSION_SLOT)
     return url
 
 
 def resolve(template, token):
     """Isi placeholder {token}. Template tanpa {token} dikembalikan apa adanya."""
-    if TOKEN not in template:
+    if SESSION_SLOT not in template:
         return template
-    return template.replace(TOKEN, token or "") if token else None
+    return template.replace(SESSION_SLOT, token or "") if token else None
 
 
 def needs_token(template):
-    return TOKEN in (template or "")
+    return SESSION_SLOT in (template or "")
 
 
 def refresh(template, extra_points=(), remote=None, log=None, attempts=DETECT_ATTEMPTS):
@@ -257,12 +262,9 @@ def _auto_detect(extra_points, remote, log):
         raise RuntimeError("Halaman utama ATR/BPN tidak bisa diakses (HTTP %s)" % status)
     pages = [_text(body)]
     for data in _post_pages(remote):
-        try:
-            st, _, b = http(BASE, post=data.replace("{t}", str(int(time.time()))).encode())
-            if st == 200 and b:
-                pages.append(_text(b))
-        except Exception:
-            pass
+        st, _, b = http_safe(BASE, post=data.replace("{t}", str(int(time.time()))).encode())
+        if st == 200 and b:
+            pages.append(_text(b))
     variables, scripts, token = {}, set(), None
     for page in pages:
         token = token or find_token(page, remote)
@@ -288,8 +290,8 @@ def _auto_detect(extra_points, remote, log):
         raise RuntimeError("Tidak menemukan definisi tile layer di skrip peta ATR/BPN")
 
     keywords = tuple(k.lower() for k in (remote.get("foto_keywords") or [])) + FOTO_KEYWORDS
-    foto = [l for l in layers if any(k in l["attribution"].lower() for k in keywords)]
-    candidates = foto or [l for l in layers if "petadasar.atrbpn.go.id" in l["url"] and "?wms/" in l["url"]]
+    foto = [ly for ly in layers if any(k in ly["attribution"].lower() for k in keywords)]
+    candidates = foto or [ly for ly in layers if "petadasar.atrbpn.go.id" in ly["url"] and "?wms/" in ly["url"]]
     if not candidates:
         raise RuntimeError("Layer foto udara tidak ditemukan pada skrip peta ATR/BPN")
     for c in candidates:

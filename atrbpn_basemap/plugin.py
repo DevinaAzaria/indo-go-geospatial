@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import configparser
+import contextlib
 import os
 import time
 
@@ -101,10 +102,8 @@ class AtrBpnBasemapPlugin:
         if getattr(self, "token_timer", None) is not None:
             self.token_timer.stop()
             self.token_timer = None
-        try:
+        with contextlib.suppress(Exception):
             QgsProject.instance().readProject.disconnect(self._on_project_read)
-        except Exception:
-            pass
         if self.export_dlg is not None:
             self.export_dlg.close()
             self.export_dlg = None
@@ -315,7 +314,7 @@ class AtrBpnBasemapPlugin:
         QTimer.singleShot(2000, self.token_tick)
 
     def _has_atr_layer(self):
-        return any(self._is_foto_layer(l) for l in QgsProject.instance().mapLayers().values())
+        return any(self._is_foto_layer(ly) for ly in QgsProject.instance().mapLayers().values())
 
     def token_tick(self):
         """Periksa token sesi di URL tile; perbarui di latar belakang bila sudah kedaluwarsa."""
@@ -413,9 +412,7 @@ class AtrBpnBasemapPlugin:
             for k, v in defaults:
                 if s.value(base + k) is None:
                     s.setValue(base + k, v)
-            try:
+            with contextlib.suppress(Exception):
                 self.iface.browserModel().reload()
-            except Exception:
-                pass
         except Exception as e:
             log("Gagal memperbarui koneksi XYZ: %s" % e, Qgis.Warning)

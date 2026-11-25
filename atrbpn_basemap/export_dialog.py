@@ -3,7 +3,6 @@
 from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject
 from qgis.gui import (QgsExtentGroupBox, QgsFileWidget, QgsMapLayerComboBox,
                       QgsProjectionSelectionWidget)
-from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                                  QDoubleSpinBox, QFormLayout, QGroupBox, QLabel,
                                  QMessageBox, QSpinBox, QVBoxLayout)
@@ -144,7 +143,9 @@ class ExportDialog(QDialog):
             self._est = None
             return
         self._est = e
-        num = lambda v: format(int(round(v)), ",").replace(",", ".")
+
+        def num(v):
+            return format(int(round(v)), ",").replace(",", ".")
         txt = ("%s tile | %s × %s px | resolusi ±%s m | ±%s MB sebelum kompresi" %
                (num(e["tiles"]), num(e["width"]), num(e["height"]),
                 ("%.2f" % e["ground_res"]).replace(".", ","), num(e["mb"])))

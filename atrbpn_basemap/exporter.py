@@ -173,7 +173,9 @@ class ExportTask(QgsTask):
 
     def _fetch(self, x, y, z):
         url = self.url
-        fill = lambda u: u.replace("{x}", str(x)).replace("{y}", str(y)).replace("{z}", str(z))
+
+        def fill(u):
+            return u.replace("{x}", str(x)).replace("{y}", str(y)).replace("{z}", str(z))
         data = fetch_tile(fill(url))
         if data is None and not self.isCanceled():
             fresh = self._renew_if_expired(url)

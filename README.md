@@ -31,19 +31,18 @@ Plugin QGIS untuk menambahkan foto udara Peta Dasar ATR/BPN ([petadasar.atrbpn.g
 - QGIS 3.22 atau lebih baru (diuji pada QGIS 3.44).
 - Koneksi internet.
 
-### Instalasi (dari GitHub Releases)
+### Instalasi
 
-Plugin ini belum tersedia di repositori resmi QGIS, jadi instalasi dilakukan dari berkas ZIP.
+Plugin ini tersedia di [repositori resmi plugin QGIS](https://plugins.qgis.org/plugins/atrbpn_basemap/) dengan status *experimental*.
 
-1. Buka halaman [Releases](https://github.com/fadliarya/atrbpn-basemap/releases), lalu unduh `atrbpn_basemap-<versi>.zip` dari rilis terbaru. **Jangan diekstrak.**
-2. Buka QGIS, pilih menu **Plugins > Manage and Install Plugins**.
-3. Pilih tab **Install from ZIP**, arahkan ke berkas ZIP tadi, lalu klik **Install Plugin**.
-4. Bila muncul peringatan keamanan tentang memasang plugin dari sumber tidak resmi, klik **Yes** untuk melanjutkan.
-5. Menu plugin akan muncul di **Plugins > ATR BPN Basemap**, dan ikonnya di toolbar Plugins.
+1. Buka QGIS, pilih menu **Plugins > Manage and Install Plugins**.
+2. Pada tab **Settings**, centang **Show also experimental plugins**, lalu klik **Reload repository**.
+3. Pada tab **All**, cari `ATR BPN Basemap`, lalu klik **Install Plugin**.
+4. Menu plugin akan muncul di **Plugins > ATR BPN Basemap**, dan ikonnya di toolbar Plugins.
 
-**Memperbarui ke versi baru:** ulangi langkah di atas dengan ZIP versi terbaru. Versi lama akan langsung ditimpa.
+**Memperbarui ke versi baru:** QGIS akan memberi tahu bila ada versi baru. Buka tab **Upgradeable** di Plugin Manager, lalu klik **Upgrade Plugin**.
 
-**Unduhan "Source code (zip)" di halaman rilis bukan berkas instalasi plugin.** Selalu gunakan berkas `atrbpn_basemap-<versi>.zip`.
+**Alternatif: pasang dari berkas ZIP.** Unduh `atrbpn_basemap-<versi>.zip` dari halaman [Releases](https://github.com/fadliarya/atrbpn-basemap/releases) (**jangan diekstrak**), lalu di Plugin Manager pilih tab **Install from ZIP**. Unduhan "Source code (zip)" di halaman rilis bukan berkas instalasi plugin.
 
 ### Cara Pakai
 
@@ -107,19 +106,18 @@ A QGIS plugin that adds aerial imagery from the ATR/BPN Peta Dasar service ([pet
 - QGIS 3.22 or later (tested on QGIS 3.44).
 - Internet connection.
 
-### Installation (from GitHub Releases)
+### Installation
 
-The plugin is not yet available in the official QGIS plugin repository, so it is installed from a ZIP file.
+The plugin is available in the [official QGIS plugin repository](https://plugins.qgis.org/plugins/atrbpn_basemap/) as an *experimental* plugin.
 
-1. Go to the [Releases](https://github.com/fadliarya/atrbpn-basemap/releases) page and download `atrbpn_basemap-<version>.zip` from the latest release. **Do not unzip it.**
-2. In QGIS, open **Plugins > Manage and Install Plugins**.
-3. Select the **Install from ZIP** tab, browse to the ZIP file, and click **Install Plugin**.
-4. If QGIS shows a security warning about installing plugins from untrusted sources, click **Yes** to continue.
-5. The plugin menu appears under **Plugins > ATR BPN Basemap**, with its icon on the Plugins toolbar.
+1. In QGIS, open **Plugins > Manage and Install Plugins**.
+2. On the **Settings** tab, tick **Show also experimental plugins**, then click **Reload repository**.
+3. On the **All** tab, search for `ATR BPN Basemap` and click **Install Plugin**.
+4. The plugin menu appears under **Plugins > ATR BPN Basemap**, with its icon on the Plugins toolbar.
 
-**Updating to a new version:** repeat the steps above with the newer ZIP. The old version is replaced automatically.
+**Updating to a new version:** QGIS notifies you when a new version is available. Open the **Upgradeable** tab in the Plugin Manager and click **Upgrade Plugin**.
 
-**The "Source code (zip)" download on the release page is not the plugin installer.** Always use the `atrbpn_basemap-<version>.zip` file.
+**Alternative: install from a ZIP file.** Download `atrbpn_basemap-<version>.zip` from the [Releases](https://github.com/fadliarya/atrbpn-basemap/releases) page (**do not unzip it**), then use the **Install from ZIP** tab in the Plugin Manager. The "Source code (zip)" download on the release page is not the plugin installer.
 
 ### Usage
 
