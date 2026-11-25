@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 """Offline preview policy. Network access requires a future reviewed implementation."""
 
 MAX_TILES = 512
 MAX_WORKERS = 2
-NETWORK_DISABLED = "Network access is disabled in INDO-GO GeoSpatial 0.1.1 pending data-rights and security review."
+NETWORK_DISABLED = "Network access is disabled in this INDO-GO GeoSpatial preview pending data-rights and security review."
 
 
 def require_network_access():

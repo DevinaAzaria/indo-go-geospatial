@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
 """Offline checks; do not import QGIS or contact any server."""
@@ -31,7 +32,7 @@ class SecurityChecks(unittest.TestCase):
         self.assertFalse((ROOT / "atrbpn_basemap").exists())
         cp = configparser.ConfigParser()
         cp.read(PKG / "metadata.txt", encoding="utf-8")
-        self.assertEqual(cp["general"]["version"], "0.1.2")
+        self.assertEqual(cp["general"]["version"], "0.2.0")
         self.assertEqual(cp["general"]["license"], "GPL-2.0-or-later")
         self.assertIn("Fadli Arya Wisnu Baradi", cp["general"]["author"])
         self.assertEqual((ROOT / "LICENSE").read_bytes(), (PKG / "LICENSE").read_bytes())
@@ -39,7 +40,7 @@ class SecurityChecks(unittest.TestCase):
     def test_gui_is_offline(self):
         source = (PKG / "plugin.py").read_text(encoding="utf-8")
         ast.parse(source)
-        for forbidden in ("QgsRasterLayer", "QTimer", "QgsSettings", "QDesktopServices", "detector", "exporter", "QgsProject"):
+        for forbidden in ("QTimer", "QgsSettings", "QDesktopServices", "detector", "exporter", "QNetwork", "requests", "urllib"):
             self.assertNotIn(forbidden, source)
 
     def test_network_and_uri_guard(self):

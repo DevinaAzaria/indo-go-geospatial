@@ -32,6 +32,9 @@ jobs:
       - name: Simulated QGIS lifecycle tests
         run: python tests/lifecycle_check.py
 
+      - name: Local raster validation tests
+        run: python tests/local_raster_check.py
+
       - name: Build ZIP plugin
         run: |
           python build_zip.py
