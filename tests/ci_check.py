@@ -63,7 +63,7 @@ try:
     lv = str(cfg.get("latest_version", ""))
     if lv and not VERSION_RE.match(lv):
         fail("config.json: latest_version '%s' bukan format x.y.z" % lv)
-    for key in ("scripts", "post_pages", "foto_keywords"):
+    for key in ("scripts", "post_pages", "foto_keywords", "token_vars"):
         if key in cfg and not isinstance(cfg[key], list):
             fail("config.json: %s harus berupa list" % key)
     if len(errors) == n_before:

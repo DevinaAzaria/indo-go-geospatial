@@ -8,6 +8,12 @@ Cara kerja:
 4. Pilih layer foto udara berdasarkan teks atribusinya (CSRT / Foto Airbone / Drone).
 5. Uji satu tile contoh dengan header Referer untuk memastikan URL benar-benar hidup.
 6. Bila deteksi otomatis gagal, pakai tile_url dari konfigurasi jarak jauh (setelah diuji).
+
+Sejak 25 Nov 2026 URL tile foto udara memuat token sesi (variabel JS `bw` di halaman
+peta m=90), misalnya ?wms/{x}/{y}/{z}/2/<token>. Token hanya berlaku bersama cookie
+sesi (PHPSESSID) dan berganti setiap beberapa menit. Karena itu plugin menyimpan
+*template* URL dengan placeholder {token} dan memperbarui tokennya secara berkala
+(lihat fetch_token() dan refresh()).
 """
 import json
 import math
@@ -27,6 +33,10 @@ DEFAULT_SCRIPTS = ["?js/map5/", "?js/2/map5/"]
 # halaman yang dimuat lewat POST (sejak Nov 2026 peta ada di iframe "m=90")
 DEFAULT_POST_PAGES = ["m=90&app=&t={t}"]
 FOTO_KEYWORDS = ("foto airbone", "foto airborne", "csrt-foto", "drone")
+TOKEN = "{token}"  # placeholder token sesi di template URL
+DEFAULT_TOKEN_VARS = ["bw"]  # nama variabel JS yang berisi token sesi
+DETECT_ATTEMPTS = 3  # token baru kadang belum aktif sesaat setelah sesi diganti server
+RETRY_DELAY = 3  # detik
 
 REPO_URL = "https://github.com/fadliarya/atrbpn-basemap"
 RELEASES_URL = REPO_URL + "/releases"
@@ -166,6 +176,79 @@ def test_url(url, extra_points=(), zoom=18):
     return False
 
 
+# ---------- token sesi ----------
+def _post_pages(remote):
+    return list(dict.fromkeys(list((remote or {}).get("post_pages") or []) + DEFAULT_POST_PAGES))
+
+
+def _token_vars(remote):
+    return list(dict.fromkeys(list((remote or {}).get("token_vars") or []) + DEFAULT_TOKEN_VARS))
+
+
+def find_token(page, remote=None):
+    """Ambil nilai token sesi dari teks halaman, atau None."""
+    for name in _token_vars(remote):
+        m = re.search(r"""\b%s\s*=\s*['"]([0-9A-Za-z]{16,})['"]""" % re.escape(name), page)
+        if m:
+            return m.group(1)
+    return None
+
+
+def fetch_token(remote=None, log=None):
+    """Minta token sesi baru dari halaman peta (POST m=90). Kembalikan string atau None."""
+    log = log or (lambda *_: None)
+    for data in _post_pages(remote):
+        try:
+            st, _, b = http(BASE, post=data.replace("{t}", str(int(time.time()))).encode())
+        except Exception as e:
+            log("Gagal meminta token sesi: %s" % e)
+            continue
+        if st == 200 and b:
+            tok = find_token(_text(b), remote)
+            if tok:
+                return tok
+    return None
+
+
+def make_template(url, token):
+    """Ganti nilai token di URL dengan placeholder {token}."""
+    if token and token in url:
+        return url.replace(token, TOKEN)
+    return url
+
+
+def resolve(template, token):
+    """Isi placeholder {token}. Template tanpa {token} dikembalikan apa adanya."""
+    if TOKEN not in template:
+        return template
+    return template.replace(TOKEN, token or "") if token else None
+
+
+def needs_token(template):
+    return TOKEN in (template or "")
+
+
+def refresh(template, extra_points=(), remote=None, log=None, attempts=DETECT_ATTEMPTS):
+    """URL siap pakai (token terbaru, sudah diuji) dari template, atau None bila gagal.
+
+    Template tanpa {token} cukup diuji saja.
+    """
+    log = log or (lambda *_: None)
+    for i in range(attempts):
+        if i:
+            time.sleep(RETRY_DELAY)
+        if needs_token(template):
+            url = resolve(template, fetch_token(remote, log))
+            if not url:
+                log("Token sesi tidak ditemukan di halaman peta ATR/BPN")
+                continue
+        else:
+            url = template
+        if test_url(url, extra_points):
+            return url
+    return None
+
+
 # ---------- deteksi ----------
 def _auto_detect(extra_points, remote, log):
     """Deteksi dari situs ATR/BPN. Kembalikan (kandidat_terpilih_atau_None, semua_layer)."""
@@ -173,16 +256,16 @@ def _auto_detect(extra_points, remote, log):
     if status != 200:
         raise RuntimeError("Halaman utama ATR/BPN tidak bisa diakses (HTTP %s)" % status)
     pages = [_text(body)]
-    post_pages = list(remote.get("post_pages") or []) + DEFAULT_POST_PAGES
-    for data in dict.fromkeys(post_pages):
+    for data in _post_pages(remote):
         try:
             st, _, b = http(BASE, post=data.replace("{t}", str(int(time.time()))).encode())
             if st == 200 and b:
                 pages.append(_text(b))
         except Exception:
             pass
-    variables, scripts = {}, set()
+    variables, scripts, token = {}, set(), None
     for page in pages:
+        token = token or find_token(page, remote)
         for k, val in _find_vars(page).items():
             variables.setdefault(k, val)
         scripts.update(re.findall(r"""['"](\.?/?\?js/[\w/]+?/?)['"]""", page))
@@ -210,38 +293,52 @@ def _auto_detect(extra_points, remote, log):
     if not candidates:
         raise RuntimeError("Layer foto udara tidak ditemukan pada skrip peta ATR/BPN")
     for c in candidates:
+        c["template"] = make_template(c["url"], token)
+    for c in candidates:
         if test_url(c["url"], extra_points):
             return dict(c, verified=True), layers
     return dict(candidates[0], verified=False), layers
 
 
-def detect(extra_points=(), log=None):
-    """Kembalikan dict {url, zmin, zmax, attribution, verified, source, all_layers, remote}.
+def detect(extra_points=(), log=None, attempts=DETECT_ATTEMPTS):
+    """Kembalikan dict {url, template, zmin, zmax, attribution, verified, source, all_layers, remote}.
 
+    url = siap pakai (token sesi sudah terisi); template = url dengan placeholder {token}.
     source = "auto" (dari situs ATR/BPN) atau "config" (dari config.json di GitHub).
     Raise RuntimeError bila tidak ada URL yang bisa dipakai.
     """
     log = log or (lambda *_: None)
     remote = fetch_config(log)
     chosen, layers, error = None, [], None
-    try:
-        chosen, layers = _auto_detect(extra_points, remote, log)
-        chosen["source"] = "auto"
-    except Exception as e:
-        error = str(e)
-        log("Deteksi otomatis gagal: %s" % e)
+    for i in range(max(1, attempts)):
+        if i:
+            log("Tile uji belum merespons, mencoba lagi dengan token sesi baru (%d/%d)..."
+                % (i + 1, attempts))
+            time.sleep(RETRY_DELAY)
+        try:
+            chosen, layers = _auto_detect(extra_points, remote, log)
+            chosen["source"] = "auto"
+            error = None
+        except Exception as e:
+            error = str(e)
+            log("Deteksi otomatis gagal: %s" % e)
+        if chosen is not None and chosen["verified"]:
+            break
 
     if (chosen is None or not chosen["verified"]) and remote.get("tile_url"):
-        url = remote["tile_url"]
-        log("Mencoba URL dari konfigurasi jarak jauh: %s" % url)
-        if test_url(url, extra_points):
-            chosen = {"url": url, "attribution": "", "verified": True, "source": "config",
+        tpl = remote["tile_url"]
+        log("Mencoba URL dari konfigurasi jarak jauh: %s" % tpl)
+        url = refresh(tpl, extra_points, remote, log, attempts=2)
+        if url:
+            chosen = {"url": url, "template": tpl, "attribution": "", "verified": True,
+                      "source": "config",
                       "zmin": int(remote.get("zmin", 16)), "zmax": int(remote.get("zmax", 21))}
 
     if chosen is None:
         raise RuntimeError(error or "URL foto udara tidak ditemukan")
     chosen["zmin"] = max(chosen["zmin"], 16)  # tile < z16 kosong di server ATR
     chosen["zmax"] = min(chosen["zmax"], 21)
+    chosen.setdefault("template", chosen["url"])
     chosen["all_layers"] = layers
     chosen["remote"] = remote
     return chosen
