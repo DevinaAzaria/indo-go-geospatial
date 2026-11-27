@@ -35,6 +35,9 @@ jobs:
       - name: Local raster validation tests
         run: python tests/local_raster_check.py
 
+      - name: Simulated local raster workflow
+        run: python tests/raster_workflow_check.py
+
       - name: Build ZIP plugin
         run: |
           python build_zip.py
