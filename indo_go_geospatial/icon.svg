@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<!-- Original INDO-GO GeoSpatial project icon, 2026-11-25, GPL-2.0-or-later -->
+<rect x="2" y="2" width="60" height="60" rx="14" fill="#123A42"/>
+<g fill="none" stroke="#63D6B5" stroke-width="2.8" stroke-linejoin="round">
+<path d="M11 27 32 15 53 27 32 39Z"/>
+<path d="m11 35 21 12 21-12M11 43l21 12 21-12"/>
+</g>
+<circle cx="32" cy="25" r="5" fill="#F7C66A"/>
+</svg>

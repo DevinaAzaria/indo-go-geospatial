@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
+# Modified by INDO-GO GeoSpatial, 2026-11-25: derivative branding; GPL-2.0-or-later.
 """Ekspor foto udara ATR/BPN menjadi GeoTIFF.
 
 Alur kerja:
@@ -16,6 +18,7 @@ import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from .security_policy import require_network_access, validate_export_limits
 
 from osgeo import gdal, osr
 from qgis.core import (Qgis, QgsCoordinateReferenceSystem, QgsCoordinateTransform,
@@ -25,7 +28,7 @@ from . import detector
 
 ORIGIN = 20037508.342789244
 TILE = 256
-LOG_TAG = "ATR BPN Basemap"
+LOG_TAG = "INDO-GO GeoSpatial"
 
 
 def log(msg, level=Qgis.Info):
@@ -106,6 +109,7 @@ def prepare_cutline(layer, selected_only):
 
 # ---------- unduh tile ----------
 def fetch_tile(url, retries=2):
+    require_network_access()
     """Bytes gambar tile, atau None bila kosong/gagal.
 
     Memakai detector.http() (QgsBlockingNetworkRequest) agar pengaturan
@@ -136,6 +140,7 @@ class ExportTask(QgsTask):
         # semua objek QGIS diubah ke tipe Python biasa di thread utama
         ext, crs = p["extent"], p["extent_crs"]
         self.x0, self.x1, self.y0, self.y1, _ = tile_range(ext, crs, p["zoom"])
+        validate_export_limits((self.x1 - self.x0 + 1) * (self.y1 - self.y0 + 1), p["workers"])
         self.bounds = (ext.xMinimum(), ext.yMinimum(), ext.xMaximum(), ext.yMaximum())
         self.bounds_srs = srs_string(crs)
         self.dst_srs = srs_string(p["dst_crs"])
@@ -215,6 +220,7 @@ class ExportTask(QgsTask):
             gdal.Unlink(vpath)
 
     def _build_mosaic(self, path):
+        require_network_access()
         z = self.p["zoom"]
         nx, ny = self.x1 - self.x0 + 1, self.y1 - self.y0 + 1
         ds = gdal.GetDriverByName("GTiff").Create(
@@ -310,6 +316,11 @@ class ExportTask(QgsTask):
             ds = None
 
     def run(self):
+        try:
+            require_network_access()
+        except PermissionError as exc:
+            self.error = str(exc)
+            return False
         tmp = tempfile.mkdtemp(prefix="atrbpn_exp_")
         try:
             with gdal_exceptions():
