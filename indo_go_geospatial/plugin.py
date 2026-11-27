@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: offline security preview; GPL-2.0-or-later.
@@ -14,6 +15,7 @@ from qgis.core import QgsProject, QgsRasterLayer
 
 from .security_policy import NETWORK_DISABLED
 from .local_raster import validate_local_tiff, validate_attribution
+from .parcel import analyze_parcel, format_result
 
 PLUGIN_NAME = "INDO-GO GeoSpatial"
 SKEY = "indo_go_geospatial/"
@@ -45,6 +47,10 @@ class IndoGoGeoSpatialPlugin:
         local_action.triggered.connect(self.open_local_raster)
         self.iface.addPluginToMenu(self.menu, local_action)
         self.actions.append(local_action)
+        parcel_action = QAction(icon, "Analisis bidang (koordinat UTM)...", self.iface.mainWindow())
+        parcel_action.triggered.connect(self.open_parcel_analyzer)
+        self.iface.addPluginToMenu(self.menu, parcel_action)
+        self.actions.append(parcel_action)
 
     def unload(self):
         for action in self.actions:
@@ -99,3 +105,21 @@ class IndoGoGeoSpatialPlugin:
             QMessageBox.warning(parent, PLUGIN_NAME, "Raster tidak dapat ditambahkan. Periksa file dan log QGIS.")
             return
         QMessageBox.information(parent, PLUGIN_NAME, "GeoTIFF lokal ditambahkan. Informasi sumber tersimpan pada metadata layer.")
+
+    def open_parcel_analyzer(self):
+        parent = self.iface.mainWindow()
+        crs, ok = QInputDialog.getText(parent, PLUGIN_NAME,
+            "Kode CRS UTM WGS 84 sumber (misalnya EPSG:32749; jangan menebak):")
+        if not ok:
+            return
+        coordinates, ok = QInputDialog.getMultiLineText(parent, PLUGIN_NAME,
+            "Masukkan titik batas secara berurutan. Satu baris: Easting Northing (meter).\n"
+            "Gunakan titik desimal dan spasi. Tidak ada transformasi CRS.")
+        if not ok:
+            return
+        try:
+            result = analyze_parcel(coordinates, crs)
+        except ValueError as exc:
+            QMessageBox.warning(parent, PLUGIN_NAME, str(exc))
+            return
+        QMessageBox.information(parent, PLUGIN_NAME, format_result(result))
