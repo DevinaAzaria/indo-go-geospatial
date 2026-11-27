@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-27: vector and area comparison preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
@@ -22,7 +23,7 @@ PKG = os.path.join(ROOT, "indo_go_geospatial")
 REQUIRED_META = ("name", "qgisMinimumVersion", "description", "about", "version", "author",
                  "email", "repository", "tracker", "homepage", "changelog", "icon")
 REQUIRED_IN_ZIP = ("__init__.py", "plugin.py", "detector.py", "exporter.py", "export_dialog.py",
-                   "metadata.txt", "icon.svg", "LICENSE", "security_policy.py", "local_raster.py", "parcel.py")
+                   "metadata.txt", "icon.svg", "LICENSE", "security_policy.py", "local_raster.py", "parcel.py", "vector_parcel.py")
 FORBIDDEN_IN_ZIP = ("__pycache__", ".pyc", ".pyo", ".bak", ".orig", ".tmp")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 

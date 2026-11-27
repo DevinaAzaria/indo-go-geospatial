@@ -1,3 +1,4 @@
+# Modified by INDO-GO GeoSpatial, 2026-11-27: vector and area comparison preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
@@ -9,15 +10,17 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Offline GeoTIFF and UTM parcel grid analyzer for indicative spatial review; network disabled.
 about=Independent INDO-GO GeoSpatial derivative of ATR BPN Basemap 1.1.3 by Fadli Arya Wisnu Baradi (GPL-2.0-or-later). Report issues via this project's GitHub; metadata email is the original author's, not derivative support.
-    This version opens user-selected local GeoTIFFs with source attribution and measures simple manually entered UTM grid polygons. No remote configuration, online imagery, session tokens, or export is enabled pending review. Inherited network code is retained but guarded.
+    This version opens user-selected local GeoTIFFs with source attribution and measures simple manually entered or selected memory-layer UTM grid polygons, with optional document area comparison. No remote configuration, online imagery, session tokens, or export is enabled pending review. Inherited network code is retained but guarded.
     This plugin is developed independently and is not affiliated with the Ministry of Agrarian Affairs and Spatial Planning/National Land Agency (ATR/BPN). The imagery remains the property of ATR/BPN; please follow the provider's terms of use.
-version=0.3.0
+version=0.3.1
 author=Fadli Arya Wisnu Baradi (original author); INDO-GO GeoSpatial (derivative)
 email=fadli.aryawisnu@gmail.com
 homepage=https://github.com/DevinaAzaria/indo-go-geospatial
 tracker=https://github.com/DevinaAzaria/indo-go-geospatial/issues
 repository=https://github.com/DevinaAzaria/indo-go-geospatial
-changelog=0.3.0
+changelog=0.3.1
+    - Analyze one selected simple 2D polygon from an offline memory layer; optional arithmetic comparison with document area. No legal tolerance or CRS transformation.
+    0.3.0
     - Offline parcel grid analyzer for manually entered UTM coordinates; area, perimeter and simple polygon checks. No official survey or coordinate transformation.
     0.2.0
     - Open local GeoTIFF, require source attribution and usage confirmation, validate local paths and raster CRS, and add offline tests. Remote access remains disabled.

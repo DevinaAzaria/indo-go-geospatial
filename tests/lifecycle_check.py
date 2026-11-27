@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-27: vector and area comparison preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
@@ -83,7 +84,7 @@ class LifecycleChecks(unittest.TestCase):
 
     def test_activate_and_unload(self):
         self.plugin.initGui()
-        self.assertEqual(len(self.iface.menu), 3)
+        self.assertEqual(len(self.iface.menu), 4)
         self.assertEqual(len(self.iface.toolbar), 1)
         action = self.iface.toolbar[0]
         self.assertTrue(action.icon.path.endswith("icon.svg"))
@@ -106,7 +107,7 @@ class LifecycleChecks(unittest.TestCase):
         self.iface.toolbar[0].triggered.emit()
         title, text = MessageBox.messages[-1]
         self.assertEqual(title, "INDO-GO GeoSpatial")
-        for expected in ("0.3.0", "disabled", "Fadli Arya Wisnu Baradi", "not affiliated"):
+        for expected in ("0.3.1", "disabled", "Fadli Arya Wisnu Baradi", "not affiliated"):
             self.assertIn(expected, text)
         for name in ("detector", "exporter", "export_dialog"):
             self.assertNotIn("indo_go_geospatial." + name, sys.modules)

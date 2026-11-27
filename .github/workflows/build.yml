@@ -41,6 +41,9 @@ jobs:
       - name: Parcel analyzer unit tests
         run: python tests/parcel_check.py
 
+      - name: Selected polygon and document comparison tests
+        run: python tests/vector_parcel_check.py
+
       - name: Build ZIP plugin
         run: |
           python build_zip.py

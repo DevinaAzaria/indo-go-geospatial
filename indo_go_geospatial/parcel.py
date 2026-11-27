@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-27: vector and area comparison preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 """Planar grid measurements for a simple UTM polygon; no CRS transformation."""
 from decimal import Decimal, localcontext
@@ -102,3 +103,25 @@ def format_result(result):
             f"Batas koordinat E/N: {x1}, {y1} — {x2}, {y2}\n\n"
             "Indikatif; bukan hasil ukur resmi atau bukti batas/hak. "
             "CRS dan koordinat belum diverifikasi. Tidak ada koreksi skala grid ke tanah.")
+
+def compare_document_area(result, text):
+    """Compare grid area with user-entered document area, without legal thresholds."""
+    if not isinstance(text, str) or not NUMBER.fullmatch(text.strip()):
+        raise ValueError("Luas dokumen harus berupa angka positif dalam m², tanpa pemisah ribuan.")
+    document = Decimal(text.strip())
+    if document <= 0:
+        raise ValueError("Luas dokumen harus lebih besar dari nol.")
+    with localcontext() as ctx:
+        ctx.prec = 42
+        difference = result["area_m2"] - document
+        return {"document_m2": document, "difference_m2": difference,
+                "absolute_m2": abs(difference),
+                "difference_percent": difference / document * 100}
+
+
+def format_comparison(comparison):
+    return (f"\n\nLuas dokumen (input pengguna): {comparison['document_m2']:.2f} m²\n"
+            f"Selisih grid − dokumen: {comparison['difference_m2']:+.2f} m²\n"
+            f"Selisih absolut: {comparison['absolute_m2']:.2f} m²\n"
+            f"Selisih relatif terhadap dokumen: {comparison['difference_percent']:+.2f}%\n"
+            "Selisih aritmetis saja; bukan penetapan toleransi, kesesuaian hukum, atau indikasi sengketa.")

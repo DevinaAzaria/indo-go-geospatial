@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Modified by INDO-GO GeoSpatial, 2026-11-27: vector and area comparison preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-27: parcel analysis preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: local raster preview; GPL-2.0-or-later.
 # Modified by INDO-GO GeoSpatial, 2026-11-25: lifecycle preview; GPL-2.0-or-later.
@@ -15,7 +16,8 @@ from qgis.core import QgsProject, QgsRasterLayer
 
 from .security_policy import NETWORK_DISABLED
 from .local_raster import validate_local_tiff, validate_attribution
-from .parcel import analyze_parcel, format_result
+from .parcel import analyze_parcel, format_result, compare_document_area, format_comparison
+from .vector_parcel import analyze_selected_polygon
 
 PLUGIN_NAME = "INDO-GO GeoSpatial"
 SKEY = "indo_go_geospatial/"
@@ -51,6 +53,10 @@ class IndoGoGeoSpatialPlugin:
         parcel_action.triggered.connect(self.open_parcel_analyzer)
         self.iface.addPluginToMenu(self.menu, parcel_action)
         self.actions.append(parcel_action)
+        selected_action = QAction(icon, "Analisis poligon terpilih (memory UTM)...", self.iface.mainWindow())
+        selected_action.triggered.connect(self.open_selected_parcel)
+        self.iface.addPluginToMenu(self.menu, selected_action)
+        self.actions.append(selected_action)
 
     def unload(self):
         for action in self.actions:
@@ -122,4 +128,36 @@ class IndoGoGeoSpatialPlugin:
         except ValueError as exc:
             QMessageBox.warning(parent, PLUGIN_NAME, str(exc))
             return
-        QMessageBox.information(parent, PLUGIN_NAME, format_result(result))
+        self.show_parcel_result(result)
+
+    def open_selected_parcel(self):
+        from qgis.core import QgsVectorLayer, QgsWkbTypes
+        parent = self.iface.mainWindow()
+        layer = self.iface.activeLayer()
+        if not isinstance(layer, QgsVectorLayer):
+            QMessageBox.warning(parent, PLUGIN_NAME, "Pilih layer vektor memory UTM.")
+            return
+        try:
+            result = analyze_selected_polygon(layer, QgsWkbTypes.Polygon)
+        except ValueError as exc:
+            QMessageBox.warning(parent, PLUGIN_NAME, str(exc))
+            return
+        except Exception:
+            QMessageBox.warning(parent, PLUGIN_NAME, "Analisis geometri gagal. Periksa layer dan log QGIS.")
+            return
+        self.show_parcel_result(result, "Sumber: satu fitur pada layer memory; koordinat dibulatkan ke 6 desimal meter.")
+
+    def show_parcel_result(self, result, context=""):
+        parent = self.iface.mainWindow()
+        message = format_result(result)
+        if context:
+            message += "\n\n" + context
+        document, ok = QInputDialog.getText(parent, PLUGIN_NAME,
+            "Opsional: luas tercantum pada dokumen (m², titik desimal). Kosongkan atau Cancel untuk melewati.")
+        if ok and document.strip():
+            try:
+                message += format_comparison(compare_document_area(result, document))
+            except ValueError as exc:
+                QMessageBox.warning(parent, PLUGIN_NAME, str(exc))
+                message += "\n\nPerbandingan tidak dihitung: input luas dokumen tidak valid."
+        QMessageBox.information(parent, PLUGIN_NAME, message)

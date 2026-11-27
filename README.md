@@ -1,6 +1,6 @@
 # INDO-GO GeoSpatial
 
-**Land Intelligence & Spatial Due Diligence — development preview 0.3.0**
+**Land Intelligence & Spatial Due Diligence — development preview 0.3.1**
 
 Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com/fadliarya/atrbpn-basemap), originally developed by Fadli Arya Wisnu Baradi. Modified on 2026-11-25. Licensed under GPL-2.0-or-later; original copyright, license and data attribution remain intact.
 
@@ -14,7 +14,7 @@ Independent QGIS plugin derivative of [ATR BPN Basemap 1.1.3](https://github.com
 
 ## Existing features / Fitur dasar
 
-Inherited features (disabled in this preview): XYZ imagery layer, URL detection and GeoTIFF export. Active QGIS actions: About, Buka GeoTIFF lokal, and Analisis bidang (koordinat UTM). Select a trusted local TIFF, enter source attribution, confirm usage rights, and load it as a GDAL raster with a valid CRS. Source attribution is user-provided, not verified. Test with the network disconnected; GDAL and QGIS are external dependencies, and filesystem or sidecar behavior is not comprehensively sandboxed. QGIS 3.22–3.99 is the upstream compatibility declaration, not a new compatibility test.
+Inherited features (disabled in this preview): XYZ imagery layer, URL detection and GeoTIFF export. Active QGIS actions: About, Buka GeoTIFF lokal, Analisis bidang (koordinat UTM), and Analisis poligon terpilih (memory UTM). Select a trusted local TIFF, enter source attribution, confirm usage rights, and load it as a GDAL raster with a valid CRS. Source attribution is user-provided, not verified. Test with the network disconnected; GDAL and QGIS are external dependencies, and filesystem or sidecar behavior is not comprehensively sandboxed. QGIS 3.22–3.99 is the upstream compatibility declaration, not a new compatibility test.
 
 ## Data rights and legal limitations / Hak data dan batasan hukum
 
@@ -23,7 +23,7 @@ Imagery and base maps are supplied by Kementerian ATR/BPN through [Peta Dasar AT
 ## Roadmap (planned, not implemented)
 
 1. Security and data-rights review; isolate plugin identity and configuration.
-2. Extend parcel analysis to validated local vector polygons and reviewed CRS transformations.
+2. Extend selected polygon analysis beyond memory layers and review CRS transformations.
 3. Spatial due diligence checklist and local project data management.
 4. Indicative report generation with sources, timestamps and limitations.
 
@@ -44,3 +44,7 @@ See [local raster acceptance protocol](tests/QGIS_LOCAL_RASTER.md) and [v0.1.2 r
 ## v0.3.0 Parcel Analyzer preview
 
 Manual ordered Easting/Northing input, declared WGS 84 UTM CRS, simple polygons only, grid area and perimeter plus bounds. No holes, multipolygons, coordinate transforms, scale correction or official cadastral measurements. No storage or network calls by this module. See [parcel acceptance protocol](tests/QGIS_PARCEL.md). Real QGIS testing remains pending for v0.2.0 and v0.3.0.
+
+## v0.3.1 selected polygon and document comparison
+
+One selected simple 2D polygon in a trusted QGIS memory layer with declared WGS 84 UTM CRS. Coordinates serialized to six decimals in metres before grid measurement. No other providers, holes, multipolygons, curves, CRS transforms or scale corrections. Optional user-entered positive document area: signed and absolute differences and signed percentage relative to document area. No legal thresholds or legal conclusions. No layer edits or persistence by the analyzer. See [runtime protocol](tests/QGIS_VECTOR_PARCEL.md) and [release gates](RELEASE_GATES.md). Real QGIS validation is pending.
